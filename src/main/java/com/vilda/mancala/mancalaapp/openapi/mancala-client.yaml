@@ -1,0 +1,207 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Mancala game client api
+  description: ""
+servers:
+  - url: http://localhost:8080/mancalaApi
+paths:
+  /client-api/v1/mancala:
+    post:
+      summary: Start a game
+      description: Create a new game with default game setup (14 pits, 6 small pits per player with 6 stones in each, 2 big pits to stack stones)
+      operationId: startGame
+      requestBody:
+        description: Player 1 and player 2 names to start a new game
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewGameSetup'
+            example:
+              playerOneName: Dima
+              playerTwoName: Mariia
+      tags:
+        - mancalaClient
+      responses:
+        "201":
+          description: Game instance was successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Uuid'
+  /client-api/v1/mancala/{gameId}/pits/{pitId}:
+    put:
+      summary: Make a move in a certain pit, in certain game
+      description: Update mancala game setup by making a move from certain pit
+      operationId: makeMoveByPitId
+      tags:
+        - mancalaClient
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          description: The game id in which a move will be made
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: pitId
+          in: path
+          required: true
+          description: The pit id from which a move will be made
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 14
+          examples:
+            example:
+              summary: example
+              value: 2
+      responses:
+        "200":
+          description: The one move was successfully made
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MancalaBoardSetup"
+        '400':
+          description: A big pit was chosen for a move or a game was already ended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: The game was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /client-api/v1/mancala/{gameId}/pits/{oldPitId}/fixMove/{newPitId}:
+    put:
+      summary: Remake a move in a certain pit, in certain game
+      description: Remake a move in a certain pit, in certain game
+      operationId: remakeMoveByPitId
+      tags:
+        - mancalaClient
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          description: The game id in which a move will be made
+          schema:
+             $ref: '#/components/schemas/Uuid'
+        - name: oldPitId
+          in: path
+          required: true
+          description: The previous pit id was made by player before fix move
+          schema:
+            type: string
+            minimum: 1
+            maximum: 14
+            pattern: '^[1-9]\d*$'
+          examples:
+            example:
+              summary: example
+              value: 2
+        - name: newPitId
+          in: path
+          required: true
+          description: The new pit id to fix move
+          schema:
+            type: string
+            minimum: 1
+            maximum: 14
+            pattern: '^[1-9]\d*$'
+          examples:
+            example:
+              summary: example
+              value: 3
+      responses:
+        "200":
+          description: The one move was successfully made
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MancalaBoardSetup"
+        "400":
+          description: A big pit was chosen for a move
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The game was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    NewGameSetup:
+      type: object
+      required:
+        - playerOneName
+        - playerTwoName
+      properties:
+        playerOneName:
+          description: Name for the first player
+          maxLength: 36
+          minLength: 1
+          type: string
+        playerTwoName:
+          description: Name for the first player
+          maxLength: 36
+          minLength: 1
+          type: string
+    MancalaBoardSetup:
+      type: object
+      required:
+        - id
+        - playerId
+        - pitIndex
+        - pits
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        playerId:
+          $ref: '#/components/schemas/Uuid'
+        pitIndex:
+          description: Index of pit which was chosen for make a move
+          type: integer
+          format: int64
+        pits:
+          description: Stones number in each pit after move was made
+          type: array
+          items:
+            $ref: "#/components/schemas/Pit"
+    Pit:
+      type: object
+      required:
+        - index
+        - numberOfStones
+      properties:
+        index:
+          description: Pit's index
+          type: integer
+          format: int32
+        numberOfStones:
+          description: Number of stones in a pit after move
+          type: integer
+          format: int32
+    Uuid:
+      maxLength: 36
+      minLength: 1
+      pattern: "^[0-9a-f]{32}$|^[0-9a-f-]{36}$"
+      type: string
+      description: Universally Unique Identifier that defines an id attribute only.
+      example:
+        id: 0955e686d31e4216b3dd5d66161d536d
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
