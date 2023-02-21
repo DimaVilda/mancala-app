@@ -3,22 +3,15 @@ package com.vilda.mancala.mancalaapp.business.service.impl;
 import com.vilda.mancala.mancalaapp.business.service.MancalaGameService;
 import com.vilda.mancala.mancalaapp.client.spec.model.MancalaBoardSetup;
 import com.vilda.mancala.mancalaapp.client.spec.model.NewGameSetup;
-import com.vilda.mancala.mancalaapp.domain.MancalaGame;
-import com.vilda.mancala.mancalaapp.domain.Participant;
-import com.vilda.mancala.mancalaapp.domain.PlayerAccount;
+import com.vilda.mancala.mancalaapp.domain.*;
 import com.vilda.mancala.mancalaapp.domain.enums.GameStatesEnum;
 import com.vilda.mancala.mancalaapp.exceptions.BadRequestException;
 import com.vilda.mancala.mancalaapp.exceptions.NotFoundException;
-import com.vilda.mancala.mancalaapp.repository.MancalaJpaRepository;
-import com.vilda.mancala.mancalaapp.repository.ParticipantJpaRepository;
-import com.vilda.mancala.mancalaapp.repository.PitJpaRepository;
-import com.vilda.mancala.mancalaapp.repository.PlayerAccountJpaRepository;
+import com.vilda.mancala.mancalaapp.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +23,72 @@ public class MancalaGameServiceImpl implements MancalaGameService {
     private final PlayerAccountJpaRepository playerJpaRepository;
     private final ParticipantJpaRepository participantJpaRepository;
 
+    private final TableCurrentStateRepository tableCurrentStateRepository;
+
     @Override
     @Transactional
     public String startNewGame(NewGameSetup newGameSetup) {
-        MancalaGame mancalaGame = defineGameSetup(newGameSetup);
-        return "1";//mancalaJpaRepository.save(mancalaGame).getId();
+        String definedGameId = defineGameSetup(newGameSetup);
+        return definedGameId;
+    }
+
+    private String defineGameSetup(NewGameSetup newGameSetup) {
+        log.debug("");
+
+        PlayerAccount playerOne = defineGamePlayerAccount(newGameSetup.getPlayerOneName());
+        PlayerAccount playerTwo = defineGamePlayerAccount(newGameSetup.getPlayerTwoName());
+
+        MancalaGame mancalaGame = new MancalaGame();
+        mancalaGame.setGameStatus(GameStatesEnum.INITIALIZED);
+        mancalaJpaRepository.save(mancalaGame);
+
+        Participant participantOne = defineGameParticipant(playerOne, mancalaGame);
+        Participant participantTwo = defineGameParticipant(playerTwo, mancalaGame);
+
+        definePitsSetupAndTableCurrentStateForThisGame(mancalaGame, participantOne, participantTwo);
+        return mancalaGame.getId();
+    }
+
+    private Participant defineGameParticipant(PlayerAccount playerAccount, MancalaGame mancalaGame) {
+        Participant participant = new Participant();
+        participant.setPlayerAccount(playerAccount);
+        participant.setMancalaGame(mancalaGame);
+        return participantJpaRepository.save(participant);
+    }
+
+    private PlayerAccount defineGamePlayerAccount(String playerData) {
+        PlayerAccount playerOne = new PlayerAccount();
+        playerOne.setPlayerName(playerData);
+        return playerJpaRepository.save(playerOne);
+    }
+
+    private void definePitsSetupAndTableCurrentStateForThisGame(MancalaGame mancalaGame, Participant participantOne, Participant participantTwo) {
+        for (int i = 0; i <= 13; i++) {
+
+            Pit pit = new Pit();
+            pit.setPitIndex(i);
+
+            TableCurrentState tableCurrentState = new TableCurrentState();
+            tableCurrentState.setMancalaGame(mancalaGame);
+            tableCurrentState.setPit(pit);
+
+            if (i == 6 || i == 13) {
+                pit.setIsBigPit(1);
+                tableCurrentState.setStonesCountInPit(0);
+            } else {
+                pit.setIsBigPit(0);
+                tableCurrentState.setStonesCountInPit(6);
+            }
+
+            if (i <= 6) {
+                pit.setParticipant(participantOne);
+            } else {
+                pit.setParticipant(participantTwo);
+            }
+
+            pitJpaRepository.save(pit);
+            tableCurrentStateRepository.save(tableCurrentState);
+        }
     }
 
     @Override
@@ -84,39 +138,6 @@ public class MancalaGameServiceImpl implements MancalaGameService {
                     log.error("Mancala game with id {} does not exist", gameId);
                     return new NotFoundException("Mancala game not found by id " + gameId);
                 });
-    }
-
-    private MancalaGame defineGameSetup(NewGameSetup newGameSetup) {
-        log.debug("");
-
-        PlayerAccount playerOne = new PlayerAccount();
-        playerOne.setPlayerName(newGameSetup.getPlayerOneName());
-      //  playerJpaRepository.save(playerOne);
-
-        PlayerAccount playerTwo = new PlayerAccount();
-        playerTwo.setPlayerName(newGameSetup.getPlayerTwoName());
-     //   playerJpaRepository.save(playerTwo);
-
-        PlayerAccount savedPlayerOne = playerJpaRepository.save(playerOne);
-        PlayerAccount savedPlayerTwo = playerJpaRepository.save(playerTwo);
-
-        MancalaGame mancalaGame = new MancalaGame();
-        mancalaGame.setGameStatus(GameStatesEnum.INITIALIZED);
-        MancalaGame savedMancalaGame = mancalaJpaRepository.save(mancalaGame);
-
-        Participant participantOne = new Participant();
-        //participantOne.setMancalaGame();
-        participantOne.setPlayerAccount(savedPlayerOne);
-        participantOne.setMancalaGame(savedMancalaGame);
-
-        Participant participantTwo = new Participant();
-        //participantOne.setMancalaGame();
-        participantTwo.setPlayerAccount(savedPlayerTwo);
-        participantTwo.setMancalaGame(savedMancalaGame);
-
-        participantJpaRepository.save(participantOne);
-        participantJpaRepository.save(participantTwo);
-        return mancalaGame;
     }
 
     private void checkIfInputPitIsBigPit(int pitId) {

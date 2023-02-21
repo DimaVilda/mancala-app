@@ -4,11 +4,9 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "game_table")
+@Table(name = "table_current_state")
 @NoArgsConstructor
 @AllArgsConstructor
 @Setter
@@ -27,8 +25,9 @@ public class TableCurrentState {
     @JoinColumn(name = "mancala_game_id")
     private MancalaGame mancalaGame;
 
-    @OneToMany(mappedBy = "tableCurrentState", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Pit> pitList = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "pit_id", nullable = false)
+    private Pit pit;
 
     @EqualsAndHashCode.Include
     @Column(name = "stones_count_in_pit", nullable = false)
