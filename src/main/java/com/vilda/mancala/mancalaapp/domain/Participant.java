@@ -23,31 +23,23 @@ public class Participant {
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-/*    @EqualsAndHashCode.Include
-    @Column(name = "external_id", nullable = false)
-    private Integer externalId;*/
+/*    @Column(name = "mancala_game_id", nullable = false, length = 36)
+    private String mancalaGameId;
 
-    @EqualsAndHashCode.Include
-    @Column(name = "last_stone_in_big_pit", nullable = false)
-    private Integer lastStoneInBigPit;
+    @Column(name = "player_account_id", nullable = false, length = 36)
+    private String playerAccountId;*/
 
-    @ManyToMany(cascade = {
-            CascadeType.PERSIST,
-            CascadeType.MERGE
-    })
-    @JoinTable(name = "mancala_game_participant",
-            joinColumns = @JoinColumn(name = "game_id"),
-            inverseJoinColumns = @JoinColumn(name = "participant_id")
-    )
-    private List<MancalaGame> mancalaGameList = new ArrayList<>();
+    @ManyToOne()
+    @JoinColumn(name = "mancala_game_id")
+    private MancalaGame mancalaGame;
 
-/*    @OneToMany(mappedBy = "gamePlayer", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MancalaGame> gameList = new ArrayList<>();*/
+    @ManyToOne()
+    @JoinColumn(name = "player_account_id")
+    private PlayerAccount playerAccount;
 
-    @OneToMany(mappedBy = "pitPlayer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Move> moveList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pit> playerPitList = new ArrayList<>();
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="player_id", nullable=false)
-    private Player player;
 }

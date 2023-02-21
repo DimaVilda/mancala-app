@@ -24,4 +24,5 @@ spring:
 logging:
   level:
     com.vilda.mancala.mancalaapp: INFO
+    org.hibernate.SQL: DEBUG
     org.springframework: INFO

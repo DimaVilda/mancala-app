@@ -8,13 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "player")
+@Table(name = "player_account")
 @NoArgsConstructor
 @AllArgsConstructor
 @Setter
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Player {
+public class PlayerAccount {
 
     @Id
     @EqualsAndHashCode.Include
@@ -27,6 +27,6 @@ public class Player {
     @Column(name = "player_name", nullable = false, length = 36)
     private String playerName;
 
-    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "playerAccount", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participantList = new ArrayList<>();
 }

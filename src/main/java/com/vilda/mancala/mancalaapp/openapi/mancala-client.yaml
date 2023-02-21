@@ -29,7 +29,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Uuid'
-  /client-api/v1/mancala/{gameId}/pits/{pitId}:
+  /client-api/v1/mancala/{gameId}/pits/{pitIndex}:
     put:
       summary: Make a move in a certain pit, in certain game
       description: Update mancala game setup by making a move from certain pit
@@ -43,7 +43,7 @@ paths:
           description: The game id in which a move will be made
           schema:
             $ref: '#/components/schemas/Uuid'
-        - name: pitId
+        - name: pitIndex
           in: path
           required: true
           description: The pit id from which a move will be made

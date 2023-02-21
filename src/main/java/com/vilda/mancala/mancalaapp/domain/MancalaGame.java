@@ -29,7 +29,20 @@ public class MancalaGame {
     @Column(name = "game_status", nullable = false, length = 16)
     private GameStatesEnum gameStatus;
 
+    @EqualsAndHashCode.Include
+    @Column(name = "last_participant_id_move", length = 36)
+    private String lastParticipantIdMove;
+
     @OneToMany(mappedBy = "mancalaGame", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Participant> participantList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "mancalaGame", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TableCurrentState> tableCurrentStatesList = new ArrayList<>();
+
+/*    @OneToMany(mappedBy = "mancalaGame", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GameTable> gameTableList = new ArrayList<>();*/
+
+/*    @OneToMany(mappedBy = "mancalaGame", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pit> pitList = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -38,5 +51,5 @@ public class MancalaGame {
     private Player gamePlayer;
 
     @ManyToMany(mappedBy = "mancalaGameList")
-    private List<Participant> participantList = new ArrayList<>();
+    private List<Participant> participantList = new ArrayList<>();*/
 }

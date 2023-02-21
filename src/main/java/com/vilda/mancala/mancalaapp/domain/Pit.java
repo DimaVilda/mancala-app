@@ -29,15 +29,23 @@ public class Pit {
     @Column(name = "pit_index", nullable = false)
     private Integer pitIndex;
 
-    @EqualsAndHashCode.Include
-    @Column(name = "stones_count", nullable = false)
-    private Integer stonesCount;
+    @ManyToOne
+    @JoinColumn(name = "pit_id", nullable = false)
+    private TableCurrentState tableCurrentState;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="game_id", nullable=false)
+    @EqualsAndHashCode.Include
+    @Column(name = "is_big_pit", nullable = false)
+    private Integer isBigPit;
+
+    @ManyToOne
+    @JoinColumn(name = "participant_id")
+    private Participant participant;
+
+/*    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "game_id", nullable = false)
     private MancalaGame mancalaGame;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="player_id", nullable=false)
-    private Player pitPlayer;
+    @JoinColumn(name = "player_id", nullable = false)
+    private Player pitPlayer;*/
 }
