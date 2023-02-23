@@ -18,11 +18,9 @@ CREATE TABLE mancala_game
     id                       VARCHAR(36) NOT NULL,
     game_status              VARCHAR(16) NOT NULL,
     last_participant_id_move VARCHAR(36) DEFAULT 0,
+    second_turn              TINYINT    DEFAULT 0,
 
     CONSTRAINT pk_mancala_game PRIMARY KEY (id)
-/*    CONSTRAINT fk_mancala_player FOREIGN KEY (last_player_id_move) REFERENCES player (id)
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION*/
 );
 
 CREATE TABLE participant
@@ -30,6 +28,7 @@ CREATE TABLE participant
     id                VARCHAR(36) NOT NULL,
     mancala_game_id   VARCHAR(36) NOT NULL,
     player_account_id VARCHAR(36) NOT NULL,
+    player_number     TINYINT    NOT NULL,
 
     CONSTRAINT pk_participant PRIMARY KEY (id),
     CONSTRAINT fk_participant_mancala_game FOREIGN KEY (mancala_game_id) REFERENCES mancala_game (id)
@@ -40,18 +39,7 @@ CREATE TABLE participant
         ON DELETE NO ACTION
 );
 
---TODO many to many relaprionship btw participant and game table
-/*CREATE TABLE game_table --to have few tables in future
-(
-    id              VARCHAR(36) NOT NULL,
-    mancala_game_id VARCHAR(36) NOT NULL,
-
-    CONSTRAINT pk_game_table PRIMARY KEY (id),
-    CONSTRAINT fk_game_table_mancala_game FOREIGN KEY (mancala_game_id) REFERENCES mancala_game (id)
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-);*/
-
+-- info table about pits
 CREATE TABLE pit
 (
     id             VARCHAR(36) NOT NULL,
@@ -61,9 +49,6 @@ CREATE TABLE pit
     pit_index      TINYINT     NOT NULL,
 
     CONSTRAINT pk_pit PRIMARY KEY (id),
-/*    CONSTRAINT fk_pit_game_table FOREIGN KEY (game_table_id) REFERENCES game_table (id)
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,*/
     CONSTRAINT fk_pit_participant FOREIGN KEY (participant_id) REFERENCES participant (id)
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
@@ -82,9 +67,6 @@ CREATE TABLE move
     stones_count_in_hand TINYINT     NOT NULL,
 
     CONSTRAINT pk_move PRIMARY KEY (id),
-/*    CONSTRAINT fk_move_game_table FOREIGN KEY (mancala_game_id) REFERENCES mancala_game (id)
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,*/
     CONSTRAINT fk_move_participant FOREIGN KEY (participant_id) REFERENCES participant (id)
         ON UPDATE NO ACTION
         ON DELETE NO ACTION

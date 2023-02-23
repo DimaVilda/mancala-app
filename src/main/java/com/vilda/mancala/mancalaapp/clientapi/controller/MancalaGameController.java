@@ -18,8 +18,8 @@ public class MancalaGameController implements MancalaClientApi {
     private final MancalaGameService mancalaGameService;
 
     @Override
-    public ResponseEntity<MancalaBoardSetup> makeMoveByPitId(String gameId, Integer pitId) {
-        return new ResponseEntity<>(mancalaGameService.makeMove(gameId, pitId), HttpStatus.OK);
+    public ResponseEntity<MancalaBoardSetup> makeMoveByPitId(String gameId, Integer pitIndex) {
+        return new ResponseEntity<>(mancalaGameService.makeMove(gameId, pitIndex), HttpStatus.OK);
     }
 
     @Override

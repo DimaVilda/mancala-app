@@ -42,6 +42,10 @@ public class Move {
     private String toPitId;
 
     @EqualsAndHashCode.Include
+    @Column(name = "isFixed", nullable = false, length = 36)
+    private Integer isFixed;
+
+    @EqualsAndHashCode.Include
     @Column(name = "stones_count_in_hand", nullable = false, length = 36)
     private Integer stonesCountInHand;
 }

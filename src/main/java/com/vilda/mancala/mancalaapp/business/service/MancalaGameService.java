@@ -7,5 +7,5 @@ public interface MancalaGameService {
 
     String startNewGame(NewGameSetup newGameSetup);
 
-    MancalaBoardSetup makeMove(String gameId, Integer pitId);
+    MancalaBoardSetup makeMove(String gameId, Integer pitIndex);
 }

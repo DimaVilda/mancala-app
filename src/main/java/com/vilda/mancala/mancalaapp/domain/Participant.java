@@ -42,4 +42,8 @@ public class Participant {
 
     @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pit> playerPitList = new ArrayList<>();
+
+    @EqualsAndHashCode.Include
+    @Column(name = "player_number", nullable = false)
+    private Integer playerNumber;
 }

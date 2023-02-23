@@ -33,6 +33,10 @@ public class MancalaGame {
     @Column(name = "last_participant_id_move", length = 36)
     private String lastParticipantIdMove;
 
+    @EqualsAndHashCode.Include
+    @Column(name = "second_turn", nullable = false)
+    private Integer secondTurn;
+
     @OneToMany(mappedBy = "mancalaGame", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participantList = new ArrayList<>();
 

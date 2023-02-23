@@ -29,7 +29,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Uuid'
-  /client-api/v1/mancala/{gameId}/pits/{pitIndex}:
+  /client-api/v1/mancala/{gameId}/pits/{pitIndex}:  #more secure to provide game id in the request body ?
     put:
       summary: Make a move in a certain pit, in certain game
       description: Update mancala game setup by making a move from certain pit
@@ -154,21 +154,32 @@ components:
     MancalaBoardSetup:
       type: object
       required:
-        - id
-        - playerId
-        - pitIndex
+        - gameId
+        - gameState
+        - participantIdCurrentMove
+        - participantIdNextMove
+        - pitIndexFrom
+        - pitIndexTo
         - pits
       properties:
-        id:
+        gameId:
           $ref: '#/components/schemas/Uuid'
-        playerId:
+        gameState:
+          $ref: '#/components/schemas/GameStatesEnum'
+        participantIdCurrentMove:
           $ref: '#/components/schemas/Uuid'
-        pitIndex:
-          description: Index of pit which was chosen for make a move
+        participantIdNextMove:
+          $ref: '#/components/schemas/Uuid'
+        pitIndexFrom:
+          description: Index of pit was chosen for make a move
           type: integer
-          format: int64
+          format: int32
+        pitIndexTo:
+          description: Index of pit last stone was put
+          type: integer
+          format: int32
         pits:
-          description: Stones number in each pit after move was made
+          description: Array of pits states after move was made
           type: array
           items:
             $ref: "#/components/schemas/Pit"
@@ -177,6 +188,7 @@ components:
       required:
         - index
         - numberOfStones
+        - isBigPit
       properties:
         index:
           description: Pit's index
@@ -186,6 +198,18 @@ components:
           description: Number of stones in a pit after move
           type: integer
           format: int32
+        isBigPit:
+          description: A mark if this pit is big
+          type: integer
+          format: int32
+    GameStatesEnum:
+      type: string
+      description: Current game state
+      default: INITIALIZED
+      enum:
+        - INITIALIZED
+        - IN_PROGRESS
+        - ENDED
     Uuid:
       maxLength: 36
       minLength: 1
