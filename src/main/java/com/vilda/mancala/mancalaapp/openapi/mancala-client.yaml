@@ -28,21 +28,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Uuid'
-  /client-api/v1/mancala/{gameId}/pits/{pitIndex}:  #more secure to provide game id in the request body ?
+                $ref: "#/components/schemas/GameSetupResponse"
+  /client-api/v1/mancala/pits/{pitIndex}:
     put:
       summary: Make a move in a certain pit, in certain game
       description: Update mancala game setup by making a move from certain pit
       operationId: makeMoveByPitId
       tags:
         - mancalaClient
+      requestBody:
+        description: Information about in which game and by which game participant current move must be performed
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveItem'
       parameters:
-        - name: gameId
-          in: path
-          required: true
-          description: The game id in which a move will be made
-          schema:
-            $ref: '#/components/schemas/Uuid'
         - name: pitIndex
           in: path
           required: true
@@ -137,6 +137,7 @@ components:
   schemas:
     NewGameSetup:
       type: object
+      description: Request body to create a new game by providing two game participants data
       required:
         - playerOneName
         - playerTwoName
@@ -151,8 +152,23 @@ components:
           maxLength: 36
           minLength: 1
           type: string
+    GameSetupResponse:
+      type: object
+      description: Created new game response with provided new game id and game's participants ids
+      required:
+        - gameId
+        - participantOneId
+        - participantTwoId
+      properties:
+        gameId:
+          $ref: '#/components/schemas/Uuid'
+        participantOneId:
+          $ref: '#/components/schemas/Uuid'
+        participantTwoId:
+          $ref: '#/components/schemas/Uuid'
     MancalaBoardSetup:
       type: object
+      description: Game table current state info after some participant made a move
       required:
         - gameId
         - gameState
@@ -160,7 +176,7 @@ components:
         - participantIdNextMove
         - pitIndexFrom
         - pitIndexTo
-        - pits
+        - tableCurrentState
       properties:
         gameId:
           $ref: '#/components/schemas/Uuid'
@@ -178,23 +194,27 @@ components:
           description: Index of pit last stone was put
           type: integer
           format: int32
-        pits:
-          description: Array of pits states after move was made
+        tableCurrentState:
+          description: Array of current state game pits after move was made
           type: array
           items:
-            $ref: "#/components/schemas/Pit"
-    Pit:
+            $ref: "#/components/schemas/TableCurrentState"
+    TableCurrentState:
       type: object
+      description: Current game pits current state info after some participant made a move
       required:
-        - index
-        - numberOfStones
+        - piId
+        - pitIndex
+        - stonesCountInPit
         - isBigPit
       properties:
-        index:
+        piId:
+          $ref: '#/components/schemas/Uuid'
+        pitIndex:
           description: Pit's index
           type: integer
           format: int32
-        numberOfStones:
+        stonesCountInPit:
           description: Number of stones in a pit after move
           type: integer
           format: int32
@@ -213,6 +233,17 @@ components:
         - PARTICIPANT_ONE_WINS
         - PARTICIPANT_TWO_WINS
         - DRAW
+    MoveItem:
+      type: object
+      description: Information about in which game and by which game participant current move must be performed
+      required:
+        - gameId
+        - participantId
+      properties:
+        gameId:
+          $ref: '#/components/schemas/Uuid'
+        participantId:
+          $ref: '#/components/schemas/Uuid'
     Uuid:
       maxLength: 36
       minLength: 1
@@ -223,6 +254,7 @@ components:
         id: 0955e686d31e4216b3dd5d66161d536d
     Error:
       type: object
+      description: A general object to catch api errors
       required:
         - code
         - message

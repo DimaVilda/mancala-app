@@ -22,7 +22,9 @@ public class Move {
     private String id;
 
     //@Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @EqualsAndHashCode.Include
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "move_number", updatable = false, nullable = false)
     private Integer moveNumber;
 
 /*    @ManyToOne

@@ -38,7 +38,7 @@ public class Participant {
     private PlayerAccount playerAccount;
 
     @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<Move> moveList = new ArrayList<>();
+    private List<Move> moveList = new ArrayList<>();
 
     @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pit> playerPitList = new ArrayList<>();
