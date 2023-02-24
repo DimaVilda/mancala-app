@@ -8,6 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface PitJpaRepository extends JpaRepository<Pit, String> {
-
     Optional<Pit> findByParticipantId(String piId);
 }

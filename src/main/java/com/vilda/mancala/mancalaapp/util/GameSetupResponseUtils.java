@@ -14,8 +14,13 @@ public class GameSetupResponseUtils {
     public GameSetupResponse getNewGameSetupResponseBody(MancalaGame mancalaGame) {
         GameSetupResponse gameSetupResponse = new GameSetupResponse();
         gameSetupResponse.setGameId(mancalaGame.getId());
-        gameSetupResponse.setParticipantOneId(mancalaGame.getParticipantList().get(0).getId()); //TODO is it correct to get 0 and 1 from list?
-        gameSetupResponse.setParticipantOneId(mancalaGame.getParticipantList().get(1).getId());
+        mancalaGame.getParticipantSet().forEach(item -> {
+            if (item.getPlayerNumber() == 1) {
+                gameSetupResponse.setParticipantOneId(item.getId());
+            } else {
+                gameSetupResponse.setParticipantTwoId(item.getId());
+            }
+        });
         return gameSetupResponse;
     }
 }

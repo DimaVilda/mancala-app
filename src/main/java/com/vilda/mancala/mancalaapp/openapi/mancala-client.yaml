@@ -4,9 +4,9 @@ info:
   title: Mancala game client api
   description: ""
 servers:
-  - url: http://localhost:8080/mancalaApi
+  - url: http://localhost:8080/mancala
 paths:
-  /client-api/v1/mancala:
+  /client-api/v1/games:
     post:
       summary: Start a game
       description: Create a new game with default game setup (14 pits, 6 small pits per player with 6 stones in each, 2 big pits to stack stones)
@@ -29,28 +29,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GameSetupResponse"
-  /client-api/v1/mancala/pits/{pitIndex}:
-    put:
+  /client-api/v1/games/{gameId}/participants/{participantId}/pits/{pitIndex}:
+    patch:
       summary: Make a move in a certain pit, in certain game
       description: Update mancala game setup by making a move from certain pit
       operationId: makeMoveByPitId
       tags:
         - mancalaClient
-      requestBody:
-        description: Information about in which game and by which game participant current move must be performed
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MoveItem'
       parameters:
+        - name: gameId
+          in: path
+          required: true
+          description: A game id where participant will make a move
+          schema:
+            $ref: '#/components/schemas/Uuid'
+          examples:
+            example:
+              summary: example
+              value: 466b8c0e-238e-46f3-9dba-dae01439bc26
+        - name: participantId
+          in: path
+          required: true
+          description: Current game participant id which will make a move
+          schema:
+            $ref: '#/components/schemas/Uuid'
+          examples:
+            example:
+              summary: example
+              value: e83dc6ae-caec-405f-9226-d7f60906c5ef
         - name: pitIndex
           in: path
           required: true
           description: The pit id from which a move will be made
           schema:
+            maximum: 13
+            minimum: 0
             type: integer
-            minimum: 1
-            maximum: 14
+            format: int32
           examples:
             example:
               summary: example
@@ -69,65 +84,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         '404':
-          description: The game was not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /client-api/v1/mancala/{gameId}/pits/{oldPitId}/fixMove/{newPitId}:
-    put:
-      summary: Remake a move in a certain pit, in certain game
-      description: Remake a move in a certain pit, in certain game
-      operationId: remakeMoveByPitId
-      tags:
-        - mancalaClient
-      parameters:
-        - name: gameId
-          in: path
-          required: true
-          description: The game id in which a move will be made
-          schema:
-             $ref: '#/components/schemas/Uuid'
-        - name: oldPitId
-          in: path
-          required: true
-          description: The previous pit id was made by player before fix move
-          schema:
-            type: string
-            minimum: 1
-            maximum: 14
-            pattern: '^[1-9]\d*$'
-          examples:
-            example:
-              summary: example
-              value: 2
-        - name: newPitId
-          in: path
-          required: true
-          description: The new pit id to fix move
-          schema:
-            type: string
-            minimum: 1
-            maximum: 14
-            pattern: '^[1-9]\d*$'
-          examples:
-            example:
-              summary: example
-              value: 3
-      responses:
-        "200":
-          description: The one move was successfully made
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MancalaBoardSetup"
-        "400":
-          description: A big pit was chosen for a move
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "404":
           description: The game was not found
           content:
             application/json:
@@ -233,17 +189,6 @@ components:
         - PARTICIPANT_ONE_WINS
         - PARTICIPANT_TWO_WINS
         - DRAW
-    MoveItem:
-      type: object
-      description: Information about in which game and by which game participant current move must be performed
-      required:
-        - gameId
-        - participantId
-      properties:
-        gameId:
-          $ref: '#/components/schemas/Uuid'
-        participantId:
-          $ref: '#/components/schemas/Uuid'
     Uuid:
       maxLength: 36
       minLength: 1

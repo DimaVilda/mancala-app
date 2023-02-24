@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ParticipantJpaRepository extends JpaRepository<Participant, String> {
-    //Optional<Participant> findByMancalaGameIdAndPlayerNumber(String gameId, Integer playerNumber);
 }

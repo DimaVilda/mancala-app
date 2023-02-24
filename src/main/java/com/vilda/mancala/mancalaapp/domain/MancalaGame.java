@@ -6,7 +6,9 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "mancala_game")
@@ -38,22 +40,9 @@ public class MancalaGame {
     private Integer secondTurn;
 
     @OneToMany(mappedBy = "mancalaGame", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Participant> participantList = new ArrayList<>();
+    private Set<Participant> participantSet = new HashSet<>();
 
     @OneToMany(mappedBy = "mancalaGame", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TableCurrentState> tableCurrentStatesList = new ArrayList<>();
 
-/*    @OneToMany(mappedBy = "mancalaGame", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<GameTable> gameTableList = new ArrayList<>();*/
-
-/*    @OneToMany(mappedBy = "mancalaGame", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Pit> pitList = new ArrayList<>();
-
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @MapsId
-    @JoinColumn(name = "player_id_move")
-    private Player gamePlayer;
-
-    @ManyToMany(mappedBy = "mancalaGameList")
-    private List<Participant> participantList = new ArrayList<>();*/
 }

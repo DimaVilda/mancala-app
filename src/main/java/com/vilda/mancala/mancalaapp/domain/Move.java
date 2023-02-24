@@ -21,15 +21,9 @@ public class Move {
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-    //@Id
     @EqualsAndHashCode.Include
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "move_number", updatable = false, nullable = false)
     private Integer moveNumber;
-
-/*    @ManyToOne
-    @JoinColumn(name = "game_table_id", nullable = false)
-    private GameTable gameTable;*/
 
     @ManyToOne
     @JoinColumn(name = "participant_id", nullable = false)
@@ -44,7 +38,7 @@ public class Move {
     private String toPitId;
 
     @EqualsAndHashCode.Include
-    @Column(name = "isFixed", nullable = false, length = 36)
+    @Column(name = "is_fixed", nullable = false, length = 36)
     private Integer isFixed;
 
     @EqualsAndHashCode.Include

@@ -39,25 +39,29 @@ public interface TableCurrentStateRepository extends JpaRepository<TableCurrentS
     List<TableCurrentState> findTableCurrentStatesByMancalaGameIdAndNotParticipantId(@Param("gameId") String gameId,
                                                                                      @Param("participantId") String participantId);
 
-/*    @Query("select tcs.stonesCountInPit from TableCurrentState tcs " +
+    //TODO remove after tests ot leave for it test
+    @Query("select tcs from TableCurrentState tcs " +
             "join tcs.pit.participant part " +
             "WHERE tcs.mancalaGame.id = :gameId " +
             "AND part.id = :participantId")
-    List<Integer> findStonesCountInPitsByMancalaGameIdAndParticipantId(@Param("gameId") String gameId,
-                                                                        @Param("participantId") String participantId);*/
+    List<TableCurrentState> testTableStatesByMancalaGameIdAndParticipantId(@Param("gameId") String gameId,
+                                                                        @Param("participantId") String participantId);
+    //TODO remove after tests ot leave for it test
+
 
     @Query("select case when sum(tcs.stonesCountInPit) = 0 then true else false end " +
             "from TableCurrentState tcs " +
             "join tcs.pit.participant part " +
             "WHERE tcs.mancalaGame.id = :gameId " +
-            "AND part.id = :participantId")
+            "AND part.id = :participantId " +
+            "AND tcs.pit.isBigPit = 0")
     boolean arePitsEmptyByGameIdAndParticipantId(@Param("gameId") String gameId,
                                                  @Param("participantId") String participantId);
 
     @Query("select tcs.stonesCountInPit from TableCurrentState tcs " +
             "join tcs.pit.participant part " +
             "WHERE tcs.mancalaGame.id = :gameId " +
-            "AND part.id <> :participantId " +
+            "AND part.id = :participantId " +
             "AND tcs.pit.isBigPit = :isBigPit")
     int findStonesCountInPitByGameIdAndParticipantId(@Param("gameId") String gameId,
                                                      @Param("participantId") String participantId,

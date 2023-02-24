@@ -6,8 +6,6 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "pit")
@@ -31,8 +29,8 @@ public class Pit {
     @Column(name = "pit_index", nullable = false)
     private Integer pitIndex;
 
-    @OneToMany(mappedBy = "pit", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TableCurrentState> tableCurrentStates = new ArrayList<>();
+/*    @OneToMany(mappedBy = "pit", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TableCurrentState> tableCurrentStates = new ArrayList<>();*/
 
     @EqualsAndHashCode.Include
     @Column(name = "is_big_pit", nullable = false)
@@ -41,12 +39,4 @@ public class Pit {
     @ManyToOne
     @JoinColumn(name = "participant_id")
     private Participant participant;
-
-/*    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "game_id", nullable = false)
-    private MancalaGame mancalaGame;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "player_id", nullable = false)
-    private Player pitPlayer;*/
 }

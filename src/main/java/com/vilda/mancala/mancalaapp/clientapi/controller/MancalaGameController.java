@@ -4,7 +4,6 @@ import com.vilda.mancala.mancalaapp.business.service.MancalaGameService;
 import com.vilda.mancala.mancalaapp.client.spec.api.MancalaClientApi;
 import com.vilda.mancala.mancalaapp.client.spec.model.GameSetupResponse;
 import com.vilda.mancala.mancalaapp.client.spec.model.MancalaBoardSetup;
-import com.vilda.mancala.mancalaapp.client.spec.model.MoveItem;
 import com.vilda.mancala.mancalaapp.client.spec.model.NewGameSetup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,13 +20,10 @@ public class MancalaGameController implements MancalaClientApi {
     private final MancalaGameService mancalaGameService;
 
     @Override
-    public ResponseEntity<MancalaBoardSetup> makeMoveByPitId(Integer pitIndex, MoveItem moveItem) {
-        return new ResponseEntity<>(mancalaGameService.makeMove(moveItem, pitIndex), HttpStatus.OK);
-    }
-
-    @Override
-    public ResponseEntity<MancalaBoardSetup> remakeMoveByPitId(String gameId, String oldPitId, String newPitId) {
-        return null;
+    public ResponseEntity<MancalaBoardSetup> makeMoveByPitId(@PathVariable String gameId,
+                                                             @PathVariable String participantId,
+                                                             @PathVariable Integer pitIndex) {
+        return new ResponseEntity<>(mancalaGameService.makeMove(gameId, participantId, pitIndex), HttpStatus.OK);
     }
 
     @Override
@@ -36,23 +32,4 @@ public class MancalaGameController implements MancalaClientApi {
 
         return ResponseEntity.ok(mancalaGameService.startNewGame(newGameSetup));
     }
-
-
-
-/*    @Override
-    public ResponseEntity<MancalaBoardSetup> makeMoveByPitId(String gameId, Integer pitIndex) {
-        return new ResponseEntity<>(mancalaGameService.makeMove(gameId, pitIndex), HttpStatus.OK);
-    }
-
-    @Override
-    public ResponseEntity<MancalaBoardSetup> remakeMoveByPitId(String gameId, String oldPitId, String newPitId) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<String> startGame(NewGameSetup newGameSetup) {
-        log.debug("");
-
-        return ResponseEntity.ok(mancalaGameService.startNewGame(newGameSetup));
-    }*/
 }

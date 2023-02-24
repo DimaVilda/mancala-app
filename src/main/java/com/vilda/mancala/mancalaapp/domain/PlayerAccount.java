@@ -4,8 +4,8 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "player_account")
@@ -28,5 +28,5 @@ public class PlayerAccount {
     private String playerName;
 
     @OneToMany(mappedBy = "playerAccount", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Participant> participantList = new ArrayList<>();
+    private Set<Participant> participantSet = new HashSet<>();
 }

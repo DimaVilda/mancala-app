@@ -23,17 +23,11 @@ public class Participant {
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-/*    @Column(name = "mancala_game_id", nullable = false, length = 36)
-    private String mancalaGameId;
-
-    @Column(name = "player_account_id", nullable = false, length = 36)
-    private String playerAccountId;*/
-
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "mancala_game_id")
     private MancalaGame mancalaGame;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "player_account_id")
     private PlayerAccount playerAccount;
 

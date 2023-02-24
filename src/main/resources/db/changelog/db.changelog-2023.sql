@@ -43,7 +43,6 @@ CREATE TABLE participant
 CREATE TABLE pit
 (
     id             VARCHAR(36) NOT NULL,
-    /*game_table_id  VARCHAR(36) NOT NULL,*/
     participant_id VARCHAR(36) NOT NULL, --owner_part_id
     is_big_pit     TINYINT     NOT NULL,
     pit_index      TINYINT     NOT NULL,
@@ -58,12 +57,10 @@ CREATE TABLE move
 (
     id                   VARCHAR(36) NOT NULL,
     move_number          INTEGER     NOT NULL, --just int autoincrement of move
-    /*mancala_game_id        VARCHAR(36) NOT NULL,*/
     participant_id       VARCHAR(36) NOT NULL,
-    /*pit_id               VARCHAR(36) NOT NULL,*/
     from_pit_id          VARCHAR(36) DEFAULT 0,
     to_pit_id            VARCHAR(36) DEFAULT 0,
-    isFixed              TINYINT     DEFAULT 0,
+    is_fixed              TINYINT     DEFAULT 0,
     stones_count_in_hand TINYINT     NOT NULL,
 
     CONSTRAINT pk_move PRIMARY KEY (id),

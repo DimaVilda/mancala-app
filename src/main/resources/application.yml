@@ -2,7 +2,9 @@ spring:
   liquibase:
     enabled: true
     change-log: "classpath:db/changelog/db.changelog-persistence.xml"
+    password:
   jpa:
+    show-sql: true
     open-in-view: false
     database-platform: org.hibernate.dialect.H2Dialect
     properties:
@@ -21,8 +23,9 @@ spring:
       enabled: true
       path: /h2
 
+#logging application
 logging:
   level:
-    com.vilda.mancala.mancalaapp: INFO
+    com.vilda.mancala.mancalaapp: DEBUG
     org.hibernate.SQL: DEBUG
     org.springframework: INFO

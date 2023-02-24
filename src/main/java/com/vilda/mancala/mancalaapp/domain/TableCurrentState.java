@@ -21,7 +21,7 @@ public class TableCurrentState {
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "mancala_game_id")
     private MancalaGame mancalaGame;
 
