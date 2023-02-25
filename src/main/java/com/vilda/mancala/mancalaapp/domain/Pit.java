@@ -23,8 +23,8 @@ public class Pit {
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-    @Min(1)
-    @Max(14)
+    @Min(0)
+    @Max(13)
     @EqualsAndHashCode.Include
     @Column(name = "pit_index", nullable = false)
     private Integer pitIndex;
