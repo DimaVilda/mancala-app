@@ -6,14 +6,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface MoveJpaRepository extends JpaRepository<Move, String> {
 
-    boolean existsByParticipantMancalaGameIdAndParticipantId(String mancalaGameId, String participantId);
+    @Query(value = "select max(m.moveNumber) from Move m " +
+            "join Participant p ON m.participantId = p.id " +
+            "where m.participantId = :participantId " +
+            "and p.mancalaGame.id = :mancalaGameId")
+    Optional<Integer> findLastMoveNumberInCurrentGameByParticipantMancalaGameIdAndParticipantId(@Param("mancalaGameId") String mancalaGameId,
+                                                                                                @Param("participantId") String participantId);
 
-    @Query("select m.moveNumber from Move m " +
-            "where m.participant.id = :participantId " +
-            "and m.participant.mancalaGame.id = :mancalaGameId ")
-    int findLastMoveNumberInCurrentGameByParticipantMancalaGameIdAndParticipantId(@Param("mancalaGameId") String mancalaGameId,
-                                                                                  @Param("participantId") String participantId);
 }

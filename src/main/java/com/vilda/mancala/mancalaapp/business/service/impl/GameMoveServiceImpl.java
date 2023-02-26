@@ -2,9 +2,9 @@ package com.vilda.mancala.mancalaapp.business.service.impl;
 
 import com.vilda.mancala.mancalaapp.business.service.GameEndService;
 import com.vilda.mancala.mancalaapp.business.service.GameMoveService;
+import com.vilda.mancala.mancalaapp.business.service.NextMoveDefinitionService;
 import com.vilda.mancala.mancalaapp.client.spec.model.MancalaBoardSetup;
 import com.vilda.mancala.mancalaapp.domain.MancalaGame;
-import com.vilda.mancala.mancalaapp.domain.Participant;
 import com.vilda.mancala.mancalaapp.domain.TableCurrentState;
 import com.vilda.mancala.mancalaapp.domain.enums.GameStatesEnum;
 import com.vilda.mancala.mancalaapp.exceptions.BadRequestException;
@@ -16,11 +16,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import static com.vilda.mancala.mancalaapp.util.constants.MancalaGameConstants.*;
+import static com.vilda.mancala.mancalaapp.util.constants.MancalaGameConstants.PLAYER_ONE_BIG_STONE_INDEX;
+import static com.vilda.mancala.mancalaapp.util.constants.MancalaGameConstants.PLAYER_TWO_BIG_STONE_INDEX;
 
 @Service
 @Slf4j
@@ -31,103 +31,57 @@ public class GameMoveServiceImpl implements GameMoveService {
     private final MancalaBoardSetupUtils mancalaBoardSetupUtils;
     private final MoveEntityUtils moveEntityUtils;
     private final GameEndService gameEndService;
+    private final NextMoveDefinitionService nextMoveDefinitionService;
+    private final TableCurrentStatePersistenceService tableCurrentStatePersistenceService;
 
     @Override
-    public MancalaBoardSetup makeMove(MancalaGame mancalaGame, String gameId, Integer pitIndex, Participant gameCurrentParticipant,
+    public MancalaBoardSetup makeMove(MancalaGame mancalaGame, String gameId, Integer pitIndex, String gameCurrentParticipantId,
                                       boolean isCurrentParticipantFirst) {
         log.debug("");
 
-        boolean isParticipantIdNextMove = false;
-        String gameCurrentParticipantId = gameCurrentParticipant.getId();
-        TableCurrentState tableCurrentStateByProvidedPit = findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, pitIndex);
+        TableCurrentState tableCurrentStateByProvidedPit =
+                tableCurrentStatePersistenceService.findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, pitIndex);
 
         Integer currentStonesCountInPit = tableCurrentStateByProvidedPit.getStonesCountInPit();
         if (currentStonesCountInPit == 0) {
             log.error("");
 
-            throw new BadRequestException("Chosen pit is empty, please chose pit with at least one stone inside!"); // TODO is it really bad request ?
+            throw new BadRequestException("Chosen pit is empty, please chose pit with at least one stone inside!");
         }
         tableCurrentStateByProvidedPit.setStonesCountInPit(0); //update current pits table state, put stones to 0 cause we took all stones from it
         tableCurrentStateRepository.save(tableCurrentStateByProvidedPit);
 
-        Set<Integer> pitIndexesSetToPlaceOneStone = new HashSet<>();
-        for (int i = 1; i <= currentStonesCountInPit; i++) {
-            // check if we do not put stone in our game partner's big pit
-            if (isCurrentParticipantFirst) {
-                if (pitIndex + i != PLAYER_TWO_BIG_STONE_INDEX) { // player one cannot put stone in his partner's big pit
-                    pitIndexesSetToPlaceOneStone.add(pitIndex + i);
-                }
-            } else { //means that player two makes this move
-                if (pitIndex + i != PLAYER_ONE_BIG_STONE_INDEX) { // player two cannot put stone in his partner's big pit
-                    pitIndexesSetToPlaceOneStone.add(pitIndex + i);
-                }
-            }
-        }
+        List<Integer> pitIndexesListToPlaceOneStone = getPitIndexList(currentStonesCountInPit, pitIndex, isCurrentParticipantFirst);
+        int lastPitIndex = pitIndexesListToPlaceOneStone.get(pitIndexesListToPlaceOneStone.size() - 1);
+        //boolean isLastIsBig = lastPitIndex == PLAYER_ONE_BIG_STONE_INDEX || lastPitIndex == PLAYER_TWO_BIG_STONE_INDEX;
 
         //batch select for less sql performance
         List<TableCurrentState> tableCurrentStatesByMancalaGameAndNextPitIndexes =
-                tableCurrentStateRepository.findTableCurrentStatesByMancalaGameAndPitPitIndexIn(gameId, pitIndexesSetToPlaceOneStone);
+                tableCurrentStateRepository.findTableCurrentStatesByMancalaGameAndPitPitIndexIn(gameId, pitIndexesListToPlaceOneStone);
         if (tableCurrentStatesByMancalaGameAndNextPitIndexes.isEmpty()) {
             log.error("");
 
-            throw new NotFoundException("Table current states was not found by provided gameId " + gameId + " and pitIndexes " + pitIndexesSetToPlaceOneStone);
+            throw new NotFoundException("Table current states was not found by provided gameId " + gameId + " and pitIndexes " + pitIndexesListToPlaceOneStone);
         }
 
-        int lastTableCurrentStateIndex = tableCurrentStatesByMancalaGameAndNextPitIndexes.size() - 1;
-        TableCurrentState tableCurrentStateForLastStone = tableCurrentStatesByMancalaGameAndNextPitIndexes.get(lastTableCurrentStateIndex); // to check If the last piece player drop
+        //int lastTableCurrentStateIndex = tableCurrentStatesByMancalaGameAndNextPitIndexes.size() - 1;
+        TableCurrentState tableCurrentStateForLastStone = tableCurrentStatesByMancalaGameAndNextPitIndexes.stream()
+                .filter(tcs -> tcs.getPit().getPitIndex() == lastPitIndex)
+                .findFirst()
+                .get(); // to check If the last piece player drop
+
         // is in an empty pocket on your side, you capture that piece and any pieces in the pocket directly opposite and put to big pit
-        tableCurrentStatesByMancalaGameAndNextPitIndexes.remove(lastTableCurrentStateIndex);
+        tableCurrentStatesByMancalaGameAndNextPitIndexes.remove(tableCurrentStateForLastStone);
 
         for (TableCurrentState tableCurrentState : tableCurrentStatesByMancalaGameAndNextPitIndexes) {
-            saveTableCurrentStateStonesCount(tableCurrentState, tableCurrentState.getStonesCountInPit() + 1);
+            tableCurrentStatePersistenceService.saveTableCurrentStateStonesCount(tableCurrentState, tableCurrentState.getStonesCountInPit() + 1);
         }
 
-        // if last stone you drop is in empty pit and this pit is NOT big pit - we capture that stone + all stones in opposite pit and move to his big pit
-        if (tableCurrentStateForLastStone.getStonesCountInPit() == 0 && tableCurrentStateForLastStone.getPit().getIsBigPit() == 0) {
-            log.debug("");
-
-            int oppositePitIndex = MANCALA_PITS_QUANTITY - tableCurrentStateForLastStone.getPit().getPitIndex() - 1; //calculate opposite pit index based on mancala pits count
-            TableCurrentState tableCurrentStateOfTheOppositePit = findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, oppositePitIndex);
-
-            int allStonesInOppositePitPlusOne = tableCurrentStateOfTheOppositePit.getStonesCountInPit() + 1; //grab all stones from opposite pit PLUS last stone in the pit to drop all it to the big pit
-            if (tableCurrentStateOfTheOppositePit.getStonesCountInPit() != 0) { //check if there is stones in opposite pit cause if there is no stones we will not waste performance to update it
-                saveTableCurrentStateStonesCount(tableCurrentStateOfTheOppositePit, 0);
-            }
-
-            TableCurrentState tableCurrentStateOfPlayerBigPit;
-            if (isCurrentParticipantFirst) { //if plays participant one, we should find his big pit under index 6
-                log.debug("");
-
-                tableCurrentStateOfPlayerBigPit = findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, PLAYER_ONE_BIG_STONE_INDEX);
-            } else { //else if is second participant plays game, we should find his big pit on index 13
-                log.debug("");
-
-                tableCurrentStateOfPlayerBigPit = findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, PLAYER_TWO_BIG_STONE_INDEX);
-            }
-            saveTableCurrentStateStonesCount(tableCurrentStateOfPlayerBigPit,
-                    tableCurrentStateOfPlayerBigPit.getStonesCountInPit() + allStonesInOppositePitPlusOne);
-
-            mancalaGame.setLastParticipantIdMove(gameCurrentParticipantId);
-            mancalaGame.setSecondTurn(0); //no second turn for this current participant
-            isParticipantIdNextMove = true;
-
-        } else if (tableCurrentStateForLastStone.getPit().getIsBigPit() == 1) { //if last stone in current state will be in big pit so the player has second turn to move
-            saveTableCurrentStateStonesCount(tableCurrentStateForLastStone, tableCurrentStateForLastStone.getStonesCountInPit() + 1);
-
-            mancalaGame.setLastParticipantIdMove(gameCurrentParticipantId);
-            mancalaGame.setSecondTurn(1); //set second turn for next move for the current game participant
-
-        } else { //else it last stone in table current state is has no empty pit and this pit is NOT big - so it's simple stone and simple move
-            saveTableCurrentStateStonesCount(tableCurrentStateForLastStone, tableCurrentStateForLastStone.getStonesCountInPit() + 1);
-
-            mancalaGame.setLastParticipantIdMove(gameCurrentParticipantId);
-            mancalaGame.setSecondTurn(0); //no second turn for this current participant
-            isParticipantIdNextMove = true;
-        }
-
+        boolean currentGameParticipantNextMove = nextMoveDefinitionService.isCurrentGameParticipantNextMove(tableCurrentStateForLastStone,
+                mancalaGame, gameId, isCurrentParticipantFirst, gameCurrentParticipantId);
         log.debug("");
         //create Move entity for logging game purposes
-        moveEntityUtils.createMoveEntity(gameId, gameCurrentParticipant, 0, tableCurrentStateByProvidedPit.getPit().getId(),
+        moveEntityUtils.createMoveEntity(gameId, gameCurrentParticipantId, 0, tableCurrentStateByProvidedPit.getPit().getId(),
                 tableCurrentStateForLastStone.getPit().getId(), currentStonesCountInPit);
 
         //TODO test purposes so delete after!
@@ -154,18 +108,45 @@ public class GameMoveServiceImpl implements GameMoveService {
             if (allGameParticipantPitsPitsAreEmpty) { //if true, the player who still has stones in his pits keeps them and puts them in his big pit
                 log.debug("");
 
-                gameEndService.defineGameWinner(mancalaGame, gameCurrentParticipant,
+                gameEndService.defineGameWinner(mancalaGame, gameCurrentParticipantId,
                         isCurrentParticipantFirst, tableCurrentStateForLastStone, pitIndex);
-                return mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, gameCurrentParticipant, pitIndex,
+                return mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, gameCurrentParticipantId, pitIndex,
                         tableCurrentStateForLastStone.getPit().getPitIndex(), "0"); //end of the game
             }
 
         }
         mancalaGame.setGameStatus(GameStatesEnum.IN_PROGRESS);
-        String participantIdNextMove = defineParticipantIdNextMove(isParticipantIdNextMove, isCurrentParticipantFirst,
+        String participantIdNextMove = defineParticipantIdNextMove(currentGameParticipantNextMove, isCurrentParticipantFirst,
                 mancalaGame, gameCurrentParticipantId);
-        return mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, gameCurrentParticipant, pitIndex,
+        return mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, gameCurrentParticipantId, pitIndex,
                 tableCurrentStateForLastStone.getPit().getPitIndex(), participantIdNextMove);
+    }
+
+    private List<Integer> getPitIndexList(Integer currentStonesCountInPit, int pitIndex, boolean isCurrentParticipantFirst) {
+        List<Integer> pitIndexesList = new ArrayList<>();
+        for (int i = 1; i <= currentStonesCountInPit; i++) {
+            //if index is greater than last pit but some stones still remains to put, we start from beginning
+            pitIndex++; //we start define pits from next pit
+            if (pitIndex > PLAYER_TWO_BIG_STONE_INDEX) {
+                pitIndex = 0;
+            }
+            if (isCurrentParticipantFirst) {
+                if (pitIndex != PLAYER_TWO_BIG_STONE_INDEX) {
+                    pitIndexesList.add(pitIndex);
+                } else {
+                    pitIndex = 0;
+                    pitIndexesList.add(pitIndex);
+                }
+            } else {
+                if (pitIndex != PLAYER_ONE_BIG_STONE_INDEX) {
+                    pitIndexesList.add(pitIndex);
+                } else {
+                    pitIndex++;
+                    pitIndexesList.add(pitIndex);
+                }
+            }
+        }
+        return pitIndexesList;
     }
 
     private String defineParticipantIdNextMove(boolean isParticipantIdNextMove, boolean isCurrentParticipantIsFirst,
@@ -179,18 +160,5 @@ public class GameMoveServiceImpl implements GameMoveService {
         } else {
             return gameCurrentParticipantId;
         }
-    }
-
-    private void saveTableCurrentStateStonesCount(TableCurrentState tableCurrentState, int pitStonesCount) {
-        tableCurrentState.setStonesCountInPit(pitStonesCount);
-        tableCurrentStateRepository.save(tableCurrentState);
-    }
-
-    private TableCurrentState findTableCurrentStateByMancalaGameIdAndPitIndex(String gameId, Integer pitIndex) {
-        return tableCurrentStateRepository.findTableCurrentStateByMancalaGameIdAndPitPitIndex(gameId, pitIndex).orElseThrow(() -> { //TODO is it better to find by gameId and pitId cause it can be a lot table states if this game has several tables
-            log.error("");
-
-            return new NotFoundException("No table current state by provided gameId " + gameId + " and pitIndex " + pitIndex);
-        });
     }
 }

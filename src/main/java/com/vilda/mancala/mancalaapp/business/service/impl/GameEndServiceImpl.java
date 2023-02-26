@@ -3,7 +3,6 @@ package com.vilda.mancala.mancalaapp.business.service.impl;
 import com.vilda.mancala.mancalaapp.business.service.GameEndService;
 import com.vilda.mancala.mancalaapp.client.spec.model.MancalaBoardSetup;
 import com.vilda.mancala.mancalaapp.domain.MancalaGame;
-import com.vilda.mancala.mancalaapp.domain.Participant;
 import com.vilda.mancala.mancalaapp.domain.TableCurrentState;
 import com.vilda.mancala.mancalaapp.domain.enums.GameStatesEnum;
 import com.vilda.mancala.mancalaapp.exceptions.NotFoundException;
@@ -22,13 +21,12 @@ public class GameEndServiceImpl implements GameEndService {
 
     private final TableCurrentStateRepository tableCurrentStateRepository;
     private final MancalaBoardSetupUtils mancalaBoardSetupUtils;
-
+    private final TableCurrentStatePersistenceService tableCurrentStatePersistenceService;
     @Override
-    public MancalaBoardSetup defineGameWinner(MancalaGame mancalaGame, Participant gameCurrentParticipant,
+    public MancalaBoardSetup defineGameWinner(MancalaGame mancalaGame, String gameCurrentParticipantId,
                                               boolean isCurrentParticipantFirst, TableCurrentState tableCurrentStateForLastStone,
                                               int pitIndex) {
         String gameId = mancalaGame.getId();
-        String gameCurrentParticipantId = gameCurrentParticipant.getId();
 
         int currentGameParticipantStonesCountInBigPit = tableCurrentStateRepository.findStonesCountInPitByGameIdAndParticipantId(gameId, gameCurrentParticipantId, 1);
 
@@ -50,11 +48,11 @@ public class GameEndServiceImpl implements GameEndService {
         //update all opposite player pits
         for (TableCurrentState tableCurrentState : oppositeParticipantTableCurrentStates) {
             oppositeParticipantAllPitsStonesSum += tableCurrentState.getStonesCountInPit();
-            saveTableCurrentStateStonesCount(tableCurrentState, 0);
+            tableCurrentStatePersistenceService.saveTableCurrentStateStonesCount(tableCurrentState, 0);
         }
 
         //update opposite game participant big pit by whole picked up stones from his small pits
-        saveTableCurrentStateStonesCount(oppositeParticipantBigPitTableCurrentState,
+        tableCurrentStatePersistenceService.saveTableCurrentStateStonesCount(oppositeParticipantBigPitTableCurrentState,
                 oppositeParticipantBigPitTableCurrentState.getStonesCountInPit() + oppositeParticipantAllPitsStonesSum);
 
         //calculate two players stones from their big pits to identify a winner
@@ -68,12 +66,7 @@ public class GameEndServiceImpl implements GameEndService {
         } else {
             mancalaGame.setGameStatus(GameStatesEnum.DRAW);
         }
-        return mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, gameCurrentParticipant, pitIndex,
+        return mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, gameCurrentParticipantId, pitIndex,
                 tableCurrentStateForLastStone.getPit().getPitIndex(), "0"); //end of the game
-    }
-
-    private void saveTableCurrentStateStonesCount(TableCurrentState tableCurrentState, int pitStonesCount) {
-        tableCurrentState.setStonesCountInPit(pitStonesCount);
-        tableCurrentStateRepository.save(tableCurrentState);
     }
 }

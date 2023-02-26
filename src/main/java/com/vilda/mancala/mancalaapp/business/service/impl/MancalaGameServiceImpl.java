@@ -7,7 +7,6 @@ import com.vilda.mancala.mancalaapp.client.spec.model.GameSetupResponse;
 import com.vilda.mancala.mancalaapp.client.spec.model.MancalaBoardSetup;
 import com.vilda.mancala.mancalaapp.client.spec.model.NewGameSetup;
 import com.vilda.mancala.mancalaapp.domain.MancalaGame;
-import com.vilda.mancala.mancalaapp.domain.Participant;
 import com.vilda.mancala.mancalaapp.exceptions.BadRequestException;
 import com.vilda.mancala.mancalaapp.exceptions.NotFoundException;
 import com.vilda.mancala.mancalaapp.repository.MancalaJpaRepository;
@@ -38,77 +37,63 @@ public class MancalaGameServiceImpl implements MancalaGameService {
         return gameSetupResponseUtils.getNewGameSetupResponseBody(newMancalaGame);
     }
 
-    //TODO hibernate show sql
     @Override
     @Transactional
-    public MancalaBoardSetup makeMove(String gameId, String currentGameParticipantId, Integer pitIndex) { //TODO check test pit indexes in put path, if validation for min(1) and max(14) really works
+    public MancalaBoardSetup makeMove(String gameId, String currentGameParticipantId, Integer pitIndex) {
         log.debug("Trying to get mancala game by id {}: ", gameId);
 
         checkIfInputPitIsBigPit(pitIndex);
         MancalaGame mancalaGame = getGameById(gameId);
 
         switch (mancalaGame.getGameStatus()) {
-            case ENDED:
             case PARTICIPANT_ONE_WINS:
             case PARTICIPANT_TWO_WINS:
             case DRAW:
                 throw new BadRequestException("A game with provided id was already ended " + gameId);
             case INITIALIZED:
+                if (!isProvidedGameParticipantFirst(currentGameParticipantId, gameId)) {
+                    log.error("");
+
+                    throw new BadRequestException("Game participant should be first to make a first move! " +
+                            "Provided participant id " + currentGameParticipantId + " belongs to player number two!");
+                }
                 checkProvidedPitIndexRangeForFirstPlayer(pitIndex);
 
-                Participant firstParticipantByMancalaGameId = findParticipantById(currentGameParticipantId);
-                checkIfProvidedGameParticipantIdIsFirst(firstParticipantByMancalaGameId.getId(), currentGameParticipantId);
-
-                return gameMoveService.makeMove(mancalaGame, gameId, pitIndex, firstParticipantByMancalaGameId, true);
+                return gameMoveService.makeMove(mancalaGame, gameId, pitIndex, currentGameParticipantId, true);
             case IN_PROGRESS:
+                boolean isCurrentParticipantFirst = isProvidedGameParticipantFirst(currentGameParticipantId, gameId);
                 //check if its really turn of provided in request body game participant
                 checkProvidedParticipantIdTurn(mancalaGame, currentGameParticipantId);
 
                 //check if player chosed correct pit range
-                Participant gameCurrentParticipant = findParticipantById(currentGameParticipantId);
-                boolean isCurrentParticipantFirst = gameCurrentParticipant.getPlayerNumber() == 1;
-
                 checkPitIndexRangeForCurrentParticipant(pitIndex, isCurrentParticipantFirst);
-                return gameMoveService.makeMove(mancalaGame, gameId, pitIndex, gameCurrentParticipant, isCurrentParticipantFirst);
+
+                return gameMoveService.makeMove(mancalaGame, gameId, pitIndex, currentGameParticipantId, isCurrentParticipantFirst);
         }
         return null;
     }
 
     private void checkProvidedPitIndexRangeForFirstPlayer(Integer pitIndex) {
         if (pitIndex > PLAYER_ONE_BIG_STONE_INDEX) {
-            throw new BadRequestException("Player 2 cannot start a new game, you should chose player 1 pits, " +
+            throw new BadRequestException("Player 2 pits could not start a new game, you should chose player 1 pits, " +
                     "provided pit has number " + pitIndex);
-        }
-    }
-
-    private void checkIfProvidedGameParticipantIdIsFirst(String firstGameParticipantId, String currentGameParticipantId) {
-        //check is provided participant id is first
-        if (!firstGameParticipantId.equals(currentGameParticipantId)) {
-            log.error("");
-
-            throw new BadRequestException("Game participant should be first to make a first move! " +
-                    "Provided participant id " + currentGameParticipantId + " belongs to player number two!");
         }
     }
 
     private void checkProvidedParticipantIdTurn(MancalaGame mancalaGame, String currentMoveMakerParticipantId) {
         String lastParticipantId = mancalaGame.getLastParticipantIdMove(); //participant id who did the last move
 
-        if (mancalaGame.getSecondTurn() == 1) { //if last move maker has a second turn so current participant id should be equal to last
-            if (!currentMoveMakerParticipantId.equals(lastParticipantId)) {
-                log.error("");
+        if (mancalaGame.getSecondTurn() == 1 && !currentMoveMakerParticipantId.equals(lastParticipantId)) {
+            log.error("");
 
-                throw new BadRequestException("Game participant " + mancalaGame.getLastParticipantIdMove() + " has a second move turn !" +
-                        "Please provide his id in request body to make a move");
-            }
+            throw new BadRequestException("Game participant " + mancalaGame.getLastParticipantIdMove() + " has a second move turn!" +
+                    " Please provide his id in request body to make a move");
 
-        } else { //if no second turn for last move maker id
-            if (currentMoveMakerParticipantId.equals(lastParticipantId)) { //if no second turn but provided same id as last move maker - throw exception
-                log.error("");
+        } else if (mancalaGame.getSecondTurn() == 0 && currentMoveMakerParticipantId.equals(lastParticipantId)) {
+            log.error("");
 
-                throw new BadRequestException("Provided game participant " + currentMoveMakerParticipantId + " already did move last time!" +
-                        "It's another player turn now");
-            }
+            throw new BadRequestException("Provided game participant " + currentMoveMakerParticipantId + " already did move last time!" +
+                    "It's another player turn now");
         }
     }
 
@@ -130,13 +115,15 @@ public class MancalaGameServiceImpl implements MancalaGameService {
         }
     }
 
-    private Participant findParticipantById(String participantId) {
-        return participantJpaRepository.findById(participantId)
+    private boolean isProvidedGameParticipantFirst(String participantId, String gameId) {
+        int participantNumberById = participantJpaRepository.findParticipantNumberByIdAndGameId(participantId, gameId)
                 .orElseThrow(() -> {
                     log.error("");
 
-                    return new NotFoundException("There is no participant in this game by provided id " + participantId);
+                    return new NotFoundException("There is no participant in this game by provided id " + participantId
+                            + " and provided game id " + gameId);
                 });
+        return (participantNumberById == 1);
     }
 
     private MancalaGame getGameById(String gameId) {

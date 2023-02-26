@@ -18,7 +18,7 @@ public class MancalaBoardSetupUtils {
     private final TableCurrentStateMapper tableCurrentStateMapper;
 
     public MancalaBoardSetup getGameBoardSetupResponseBody(MancalaGame mancalaGame,
-                                                           Participant gameCurrentParticipant,
+                                                           String gameCurrentParticipantId,
                                                            Integer pitIndexFrom,
                                                            Integer pitIndexTo,
                                                            String participantIdNextMove) {
@@ -26,7 +26,7 @@ public class MancalaBoardSetupUtils {
         mancalaBoardSetup.setGameId(mancalaGame.getId());
         mancalaBoardSetup.setGameState(gameStatesEnumMapper.toGameStatusEnumViewModel(mancalaGame.getGameStatus()));
 
-        mancalaBoardSetup.setParticipantIdCurrentMove(gameCurrentParticipant.getId());
+        mancalaBoardSetup.setParticipantIdCurrentMove(gameCurrentParticipantId);
         mancalaBoardSetup.setParticipantIdNextMove(participantIdNextMove);
 
         mancalaBoardSetup.setPitIndexFrom(pitIndexFrom);

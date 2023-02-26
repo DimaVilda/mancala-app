@@ -31,8 +31,8 @@ public class Participant {
     @JoinColumn(name = "player_account_id")
     private PlayerAccount playerAccount;
 
-    @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Move> moveList = new ArrayList<>();
+/*    @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Move> moveList = new ArrayList<>();*/
 
     @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pit> playerPitList = new ArrayList<>();

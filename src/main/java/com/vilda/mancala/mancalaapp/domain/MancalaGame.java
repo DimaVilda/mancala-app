@@ -28,7 +28,7 @@ public class MancalaGame {
 
     @Enumerated(EnumType.STRING)
     @EqualsAndHashCode.Include
-    @Column(name = "game_status", nullable = false, length = 16)
+    @Column(name = "game_status", nullable = false, length = 36)
     private GameStatesEnum gameStatus;
 
     @EqualsAndHashCode.Include

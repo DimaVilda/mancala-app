@@ -25,9 +25,12 @@ public class Move {
     @Column(name = "move_number", updatable = false, nullable = false)
     private Integer moveNumber;
 
-    @ManyToOne
-    @JoinColumn(name = "participant_id", nullable = false)
-    private Participant participant;
+    /*    @ManyToOne
+        @JoinColumn(name = "participant_id", nullable = false)
+        private Participant participant;*/
+    @EqualsAndHashCode.Include
+    @Column(name = "participant_id", updatable = false, nullable = false)
+    private String participantId;
 
     @EqualsAndHashCode.Include
     @Column(name = "from_pit_id", length = 36)

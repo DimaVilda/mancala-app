@@ -16,7 +16,7 @@ CREATE TABLE player_account
 CREATE TABLE mancala_game
 (
     id                       VARCHAR(36) NOT NULL,
-    game_status              VARCHAR(16) NOT NULL,
+    game_status              VARCHAR(36) NOT NULL,
     last_participant_id_move VARCHAR(36) DEFAULT 0,
     second_turn              TINYINT    DEFAULT 0,
 
@@ -56,7 +56,7 @@ CREATE TABLE pit
 CREATE TABLE move
 (
     id                   VARCHAR(36) NOT NULL,
-    move_number          INTEGER     NOT NULL, --just int autoincrement of move
+    move_number          INTEGER     NOT NULL,
     participant_id       VARCHAR(36) NOT NULL,
     from_pit_id          VARCHAR(36) DEFAULT 0,
     to_pit_id            VARCHAR(36) DEFAULT 0,
