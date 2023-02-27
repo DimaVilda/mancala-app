@@ -21,7 +21,7 @@ public class TableCurrentStatePersistenceService {
 
     public TableCurrentState findTableCurrentStateByMancalaGameIdAndPitIndex(String gameId, Integer pitIndex) {
         return tableCurrentStateRepository.findTableCurrentStateByMancalaGameIdAndPitPitIndex(gameId, pitIndex).orElseThrow(() -> {
-            log.error("");
+            log.error("No pit table state was fround by game {} and pit index {}", gameId, pitIndex);
 
             return new NotFoundException("No table current state by provided gameId " + gameId + " and pitIndex " + pitIndex);
         });

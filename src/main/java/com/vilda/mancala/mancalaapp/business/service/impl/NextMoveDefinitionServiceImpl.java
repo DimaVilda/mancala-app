@@ -16,6 +16,7 @@ public class NextMoveDefinitionServiceImpl implements NextMoveDefinitionService 
 
     private final TableCurrentStatePersistenceService tableCurrentStatePersistenceService;
 
+    // TODO test return value!!
     @Override
     public boolean isCurrentGameParticipantNextMove(TableCurrentState tableCurrentStateForLastStone,
                                                     MancalaGame mancalaGame, String gameId,
@@ -24,9 +25,12 @@ public class NextMoveDefinitionServiceImpl implements NextMoveDefinitionService 
         // if last stone you drop is in your empty pit and this pit is NOT big pit - we capture that stone + all stones in opposite pit and move to his big pit
         if (tableCurrentStateForLastStone.getStonesCountInPit() == 0 && tableCurrentStateForLastStone.getPit().getIsBigPit() == 0 &&
                 tableCurrentStateForLastStone.getPit().getParticipant().getPlayerNumber() == (isCurrentParticipantFirst ? 1 : 2)) { //and if last table state pit index belongs to current player number
-            log.debug("");
+            log.debug("Last pit state {} stones count is 0 and pit is not big so no chance for next move again now",
+                    tableCurrentStateForLastStone);
 
             int oppositePitIndex = MANCALA_PITS_QUANTITY - tableCurrentStateForLastStone.getPit().getPitIndex() - 1; //calculate opposite pit index based on mancala pits count
+            log.debug("opposite pit index number is {}", oppositePitIndex);
+
             TableCurrentState tableCurrentStateOfTheOppositePit =
                     tableCurrentStatePersistenceService.findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, oppositePitIndex);
 
@@ -37,12 +41,12 @@ public class NextMoveDefinitionServiceImpl implements NextMoveDefinitionService 
 
             TableCurrentState tableCurrentStateOfPlayerBigPit;
             if (isCurrentParticipantFirst) { //if plays participant one, we should find his big pit under index 6
-                log.debug("");
+                log.debug("Current game participant is first");
 
                 tableCurrentStateOfPlayerBigPit =
                         tableCurrentStatePersistenceService.findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, PLAYER_ONE_BIG_STONE_INDEX);
             } else { //else if is second participant plays game, we should find his big pit on index 13
-                log.debug("");
+                log.debug("Current game participant is second");
 
                 tableCurrentStateOfPlayerBigPit =
                         tableCurrentStatePersistenceService.findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, PLAYER_TWO_BIG_STONE_INDEX);
@@ -55,6 +59,9 @@ public class NextMoveDefinitionServiceImpl implements NextMoveDefinitionService 
             return true;
 
         } else if (tableCurrentStateForLastStone.getPit().getIsBigPit() == 1) { //if last stone in current state will be in big pit so the player has second turn to move
+            log.debug("Current last pit in table state {} is big so current game participant can make next move again",
+                    tableCurrentStateForLastStone);
+
             tableCurrentStatePersistenceService
                     .saveTableCurrentStateStonesCount(tableCurrentStateForLastStone, tableCurrentStateForLastStone.getStonesCountInPit() + 1);
 
@@ -63,6 +70,9 @@ public class NextMoveDefinitionServiceImpl implements NextMoveDefinitionService 
             return false;
 
         } else { //else it last stone in table current state is has no empty pit and this pit is NOT big - so it's simple stone and simple move
+            log.debug("Current last pit in table state {} is not big so no chance for next move again now",
+                    tableCurrentStateForLastStone);
+
             tableCurrentStatePersistenceService
                     .saveTableCurrentStateStonesCount(tableCurrentStateForLastStone, tableCurrentStateForLastStone.getStonesCountInPit() + 1);
 

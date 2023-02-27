@@ -8,7 +8,6 @@ import com.vilda.mancala.mancalaapp.domain.MancalaGame;
 import com.vilda.mancala.mancalaapp.domain.TableCurrentState;
 import com.vilda.mancala.mancalaapp.domain.enums.GameStatesEnum;
 import com.vilda.mancala.mancalaapp.exceptions.BadRequestException;
-import com.vilda.mancala.mancalaapp.exceptions.NotFoundException;
 import com.vilda.mancala.mancalaapp.repository.TableCurrentStateRepository;
 import com.vilda.mancala.mancalaapp.util.MancalaBoardSetupUtils;
 import com.vilda.mancala.mancalaapp.util.MoveEntityUtils;
@@ -37,15 +36,15 @@ public class GameMoveServiceImpl implements GameMoveService {
     @Override
     public MancalaBoardSetup makeMove(MancalaGame mancalaGame, Integer pitIndex, String gameCurrentParticipantId,
                                       boolean isCurrentParticipantFirst) {
-        log.debug("");
         String gameId = mancalaGame.getId();
+        log.debug("Trying to make a move in game {} from index {} by {}", gameId, pitIndex, gameCurrentParticipantId);
 
         TableCurrentState tableCurrentStateByProvidedPit =
                 tableCurrentStatePersistenceService.findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, pitIndex);
 
         Integer currentStonesCountInPit = tableCurrentStateByProvidedPit.getStonesCountInPit();
         if (currentStonesCountInPit == 0) {
-            log.error("");
+            log.error("No stones in pit {}", pitIndex);
 
             throw new BadRequestException("Chosen pit is empty, please chose pit with at least one stone inside!");
         }
@@ -59,13 +58,7 @@ public class GameMoveServiceImpl implements GameMoveService {
         //batch select for less sql performance
         List<TableCurrentState> tableCurrentStatesByMancalaGameAndNextPitIndexes =
                 tableCurrentStateRepository.findTableCurrentStatesByMancalaGameAndPitPitIndexIn(gameId, pitIndexesListToPlaceOneStone);
-        if (tableCurrentStatesByMancalaGameAndNextPitIndexes.isEmpty()) {
-            log.error("");
 
-            throw new NotFoundException("Table current states was not found by provided gameId " + gameId + " and pitIndexes " + pitIndexesListToPlaceOneStone);
-        }
-
-        //int lastTableCurrentStateIndex = tableCurrentStatesByMancalaGameAndNextPitIndexes.size() - 1;
         TableCurrentState tableCurrentStateForLastStone = tableCurrentStatesByMancalaGameAndNextPitIndexes.stream()
                 .filter(tcs -> tcs.getPit().getPitIndex() == lastPitIndex)
                 .findFirst()
@@ -80,7 +73,6 @@ public class GameMoveServiceImpl implements GameMoveService {
 
         boolean currentGameParticipantNextMove = nextMoveDefinitionService.isCurrentGameParticipantNextMove(tableCurrentStateForLastStone,
                 mancalaGame, gameId, isCurrentParticipantFirst, gameCurrentParticipantId);
-        log.debug("");
         //create Move entity for logging game purposes
         moveEntityUtils.createMoveEntity(gameId, gameCurrentParticipantId, 0, tableCurrentStateByProvidedPit.getPit().getId(),
                 tableCurrentStateForLastStone.getPit().getId(), currentStonesCountInPit);
@@ -103,11 +95,11 @@ public class GameMoveServiceImpl implements GameMoveService {
 
         // check if all pits are empty after move above in current participant game table setup
         if (mancalaGame.getGameStatus() == GameStatesEnum.IN_PROGRESS) {
-            log.debug("");
+            log.debug("Mancala game status is IN_PROGRESS so let's check if pits are empty after updating game table state entities");
 
             boolean allGameParticipantPitsPitsAreEmpty = tableCurrentStateRepository.arePitsEmptyByGameIdAndParticipantId(gameId, gameCurrentParticipantId); //another options
             if (allGameParticipantPitsPitsAreEmpty) { //if true, the player who still has stones in his pits keeps them and puts them in his big pit
-                log.debug("");
+                log.debug("All pit of the game participant {} are empty", gameCurrentParticipantId);
 
                 gameEndService.defineGameWinner(mancalaGame, gameCurrentParticipantId,
                         isCurrentParticipantFirst, pitIndex, tableCurrentStateForLastStone.getPit().getPitIndex());

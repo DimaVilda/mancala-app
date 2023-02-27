@@ -5,6 +5,9 @@ import liquibase.repackaged.org.apache.commons.lang3.StringUtils;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+/**
+ * Validator logic to check is user name is valid
+ */
 public class ValidNameValidator implements ConstraintValidator<ValidUserName, String> {
 
     @Override

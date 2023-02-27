@@ -41,15 +41,17 @@ public class MancalaGameServiceImpl implements MancalaGameService {
     @Override
     @Transactional
     public MancalaBoardSetup makeMove(String gameId, String currentGameParticipantId, Integer pitIndex) {
-        log.debug("Trying to get mancala game by id {}: ", gameId);
 
         checkIfInputPitIsBigPit(pitIndex);
+
+        log.debug("Trying to get mancala game by id {}: ", gameId);
         MancalaGame mancalaGame = getGameById(gameId);
 
         switch (mancalaGame.getGameStatus()) {
             case PARTICIPANT_ONE_WINS:
             case PARTICIPANT_TWO_WINS:
             case DRAW:
+                log.error("Game status {} does not allow to make next moves", mancalaGame.getGameStatus());
                 throw new BadRequestException("A game with provided id was already ended " + gameId);
             case INITIALIZED:
                 if (!isProvidedGameParticipantFirst(currentGameParticipantId, gameId)) {
@@ -76,6 +78,8 @@ public class MancalaGameServiceImpl implements MancalaGameService {
 
     private void checkProvidedPitIndexRangeForFirstPlayer(Integer pitIndex) {
         if (pitIndex > PLAYER_ONE_BIG_STONE_INDEX) {
+            log.error("Pit index {} > than first player pit indexes", pitIndex);
+
             throw new BadRequestException("Player 2 pits could not start a new game, you should chose player 1 pits, " +
                     "provided pit has number " + pitIndex);
         }
@@ -85,13 +89,13 @@ public class MancalaGameServiceImpl implements MancalaGameService {
         String lastParticipantId = mancalaGame.getLastParticipantIdMove(); //participant id who did the last move
 
         if (mancalaGame.getSecondTurn() == 1 && !currentMoveMakerParticipantId.equals(lastParticipantId)) {
-            log.error("");
+            log.error("Last game participant {} has a right to the next move", lastParticipantId);
 
             throw new BadRequestException("Game participant " + mancalaGame.getLastParticipantIdMove() + " has a second move turn!" +
                     " Please provide his id in request body to make a move");
 
         } else if (mancalaGame.getSecondTurn() == 0 && currentMoveMakerParticipantId.equals(lastParticipantId)) {
-            log.error("");
+            log.error("Provided move maker {} already did a move last time", currentMoveMakerParticipantId);
 
             throw new BadRequestException("Provided game participant " + currentMoveMakerParticipantId + " already did move last time!" +
                     "It's another player turn now");
@@ -101,14 +105,14 @@ public class MancalaGameServiceImpl implements MancalaGameService {
     private void checkPitIndexRangeForCurrentParticipant(Integer pitIndex, boolean isCurrentParticipantFirst) {
         if (isCurrentParticipantFirst) {
             if (pitIndex > PLAYER_ONE_BIG_STONE_INDEX) {
-                log.error("");
+                log.error("Pit index {} > than 6 however current participant is first", pitIndex);
 
                 throw new BadRequestException("Pit index should be in range from 0 to 5 for first participant!" +
                         "Provided pit index is " + pitIndex);
             }
         } else {
             if (pitIndex < PLAYER_ONE_BIG_STONE_INDEX) {
-                log.error("");
+                log.error("Pit index {} < than 6 however current participant is second", pitIndex);
 
                 throw new BadRequestException("Pit index should be in range from 7 to 12 for second participant!" +
                         "Provided pit index is " + pitIndex);
@@ -119,7 +123,7 @@ public class MancalaGameServiceImpl implements MancalaGameService {
     private boolean isProvidedGameParticipantFirst(String participantId, String gameId) {
         int participantNumberById = participantJpaRepository.findParticipantNumberByIdAndGameId(participantId, gameId)
                 .orElseThrow(() -> {
-                    log.error("");
+                    log.error("Given participant {} was not found in game {}", participantId, gameId);
 
                     return new NotFoundException("There is no participant in this game by provided id " + participantId
                             + " and provided game id " + gameId);
@@ -137,7 +141,7 @@ public class MancalaGameServiceImpl implements MancalaGameService {
 
     private void checkIfInputPitIsBigPit(int pitIndex) {
         if (pitIndex == PLAYER_ONE_BIG_STONE_INDEX || pitIndex == PLAYER_TWO_BIG_STONE_INDEX) {
-            log.error("");
+            log.error("Big pit index {} was chosen to make a move", pitIndex);
 
             throw new BadRequestException("You can't make a move from a big pit, pls chose correct pit, " +
                     "provided pit has number " + pitIndex);

@@ -28,12 +28,13 @@ public class GameEndServiceImpl implements GameEndService {
                                               boolean isCurrentParticipantFirst, int pitIndexFrom,
                                               int pitIndexTo) {
         String gameId = mancalaGame.getId();
+        log.debug("Trying to define game end status by looking for a game {} winner", gameId);
 
         int currentGameParticipantStonesCountInBigPit = tableCurrentStateRepository.findStonesCountInPitByGameIdAndParticipantId(gameId, gameCurrentParticipantId, 1);
 
         List<TableCurrentState> oppositeParticipantTableCurrentStates = tableCurrentStateRepository.findTableCurrentStatesByMancalaGameIdAndNotParticipantId(gameId, gameCurrentParticipantId);
         if (oppositeParticipantTableCurrentStates.isEmpty()) {
-            log.error("");
+            log.error("Opposite game participant's table state is empty, pls check game {} setup", gameId);
 
             throw new NotFoundException("Table current states was not found by provided gameId " + gameId + " and opposite participantId");
         }
@@ -41,7 +42,7 @@ public class GameEndServiceImpl implements GameEndService {
         int oppositeParticipantAllPitsStonesSum = 0;
         TableCurrentState oppositeParticipantBigPitTableCurrentState =
                 oppositeParticipantTableCurrentStates.stream().filter(tblState -> tblState.getPit().getIsBigPit() == 1).findFirst().get();
-
+        log.debug("Defined opposite participant big pit current state {}", oppositeParticipantBigPitTableCurrentState);
         //remove big pit from opposite game participant table states cause it will serve only for keep stones
         oppositeParticipantTableCurrentStates.remove(oppositeParticipantBigPitTableCurrentState);
 
@@ -51,13 +52,15 @@ public class GameEndServiceImpl implements GameEndService {
             oppositeParticipantAllPitsStonesSum += tableCurrentState.getStonesCountInPit();
             tableCurrentStatePersistenceService.saveTableCurrentStateStonesCount(tableCurrentState, 0);
         }
-
+        log.debug("Opposite game participant all pits stones except big pit sum is {}", oppositeParticipantAllPitsStonesSum);
         //update opposite game participant big pit by whole picked up stones from his small pits
         tableCurrentStatePersistenceService.saveTableCurrentStateStonesCount(oppositeParticipantBigPitTableCurrentState,
                 oppositeParticipantBigPitTableCurrentState.getStonesCountInPit() + oppositeParticipantAllPitsStonesSum);
 
         //calculate two players stones from their big pits to identify a winner
         int result = currentGameParticipantStonesCountInBigPit - oppositeParticipantBigPitTableCurrentState.getStonesCountInPit();
+        log.debug("Result is {} ", result);
+
         if (result > 0) { //current game participant wins
             mancalaGame.setGameStatus(
                     isCurrentParticipantFirst ? GameStatesEnum.PARTICIPANT_ONE_WINS : GameStatesEnum.PARTICIPANT_TWO_WINS);

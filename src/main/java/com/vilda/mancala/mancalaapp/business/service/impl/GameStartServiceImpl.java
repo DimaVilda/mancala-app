@@ -24,7 +24,7 @@ public class GameStartServiceImpl implements GameStartService {
 
     @Override
     public MancalaGame defineGameSetup(NewGameSetup newGameSetup) {
-        log.debug("");
+        log.debug("Trying to define a game setup by providing request {}", newGameSetup);
 
         PlayerAccount playerOne = defineGamePlayerAccount(newGameSetup.getPlayerOneName());
         PlayerAccount playerTwo = defineGamePlayerAccount(newGameSetup.getPlayerTwoName());

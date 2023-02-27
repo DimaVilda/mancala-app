@@ -22,6 +22,8 @@ public class MancalaBoardSetupUtils {
                                                            Integer pitIndexFrom,
                                                            Integer pitIndexTo,
                                                            String participantIdNextMove) {
+        log.debug("Trying to setup current game {} table state response body info", mancalaGame.getId());
+
         MancalaBoardSetup mancalaBoardSetup = new MancalaBoardSetup();
         mancalaBoardSetup.setGameId(mancalaGame.getId());
         mancalaBoardSetup.setGameState(gameStatesEnumMapper.toGameStatusEnumViewModel(mancalaGame.getGameStatus()));

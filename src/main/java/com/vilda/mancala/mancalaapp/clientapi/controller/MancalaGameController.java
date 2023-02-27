@@ -25,13 +25,16 @@ public class MancalaGameController implements MancalaClientApi {
     public ResponseEntity<MancalaBoardSetup> makeMoveByPitId(String gameId,
                                                              String participantId,
                                                              Integer pitIndex) {
+        log.debug("Trying to make a move in the game {} by participant id {} from pit number {}",
+                gameId, participantId, pitIndex);
+
         return new ResponseEntity<>(mancalaGameService.makeMove(gameId, participantId, pitIndex), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<GameSetupResponse> startGame(@RequestBody @Validated(UserGroupSequence.class)
                                                        NewGameSetup newGameSetup) {
-        log.debug("");
+        log.debug("Trying to start a new game by request body {}", newGameSetup);
 
         return ResponseEntity.ok(mancalaGameService.startNewGame(newGameSetup));
     }
