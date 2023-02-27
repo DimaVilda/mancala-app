@@ -87,7 +87,7 @@ public class GameMoveServiceImpl implements GameMoveService {
 
         //TODO test purposes so delete after!
         //set table states to 0 in current player
-        if (mancalaGame.getGameStatus() == GameStatesEnum.IN_PROGRESS) {
+/*        if (mancalaGame.getGameStatus() == GameStatesEnum.IN_PROGRESS) {
             if (!tableCurrentStateRepository.arePitsEmptyByGameIdAndParticipantId(gameId, gameCurrentParticipantId)) { //do it once only when pits are not empty
                 List<TableCurrentState> testTableStatesOfCurrentPlayer =
                         tableCurrentStateRepository.testTableStatesByMancalaGameIdAndParticipantId(gameId, gameCurrentParticipantId);
@@ -98,7 +98,7 @@ public class GameMoveServiceImpl implements GameMoveService {
                     tableCurrentStateRepository.save(t);
                 }
             }
-        }
+        }*/
         //TODO test purposes so delete after!
 
         // check if all pits are empty after move above in current participant game table setup
@@ -110,7 +110,7 @@ public class GameMoveServiceImpl implements GameMoveService {
                 log.debug("");
 
                 gameEndService.defineGameWinner(mancalaGame, gameCurrentParticipantId,
-                        isCurrentParticipantFirst, tableCurrentStateForLastStone, pitIndex);
+                        isCurrentParticipantFirst, pitIndex, tableCurrentStateForLastStone.getPit().getPitIndex());
                 return mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, gameCurrentParticipantId, pitIndex,
                         tableCurrentStateForLastStone.getPit().getPitIndex(), "0"); //end of the game
             }

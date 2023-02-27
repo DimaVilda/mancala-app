@@ -40,9 +40,12 @@ public class MancalaBoardSetupUtilsTest {
         mancalaGame.setGameStatus(GameStatesEnum.IN_PROGRESS);
         mancalaGame.setTableCurrentStatesList(Collections.singletonList(tableCurrentState));
 
-        when(gameStatesEnumMapper.toGameStatusEnumViewModel(mancalaGame.getGameStatus())).thenReturn(com.vilda.mancala.mancalaapp.client.spec.model.GameStatesEnum.INITIALIZED);
-        when(tableCurrentStateMapper.toTableCurrentStateViewModelList(mancalaGame.getTableCurrentStatesList())).thenReturn(anyList());
+        when(gameStatesEnumMapper.toGameStatusEnumViewModel(mancalaGame.getGameStatus())).
+                thenReturn(com.vilda.mancala.mancalaapp.client.spec.model.GameStatesEnum.INITIALIZED);
+        when(tableCurrentStateMapper.toTableCurrentStateViewModelList(mancalaGame.getTableCurrentStatesList()))
+                .thenReturn(anyList());
 
-        mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, CURR_GAME_PARTICIPANT_ID, 0, 7, PARTICIPANT_ID_NEXT_MOVE);
+        mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, CURR_GAME_PARTICIPANT_ID,
+                0, 7, PARTICIPANT_ID_NEXT_MOVE);
     }
 }

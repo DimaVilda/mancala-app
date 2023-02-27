@@ -175,7 +175,7 @@ public class MancalaGameServiceImplTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"1,2,participantTwo", "0,1,participantOne"})
+    @CsvSource({"1,2,participantIdTwo", "0,1,participantIdOne"})
     void shouldThrowBadRequestExceptionWhenGameInProgressButNotProvidedParticipantTurn(int secondTurn, int participantNumber,
                                                                                        String currentGameParticipantIdInPath) {
         MancalaGame mancalaGame = new MancalaGame();
@@ -187,7 +187,7 @@ public class MancalaGameServiceImplTest {
         when(participantJpaRepository.findParticipantNumberByIdAndGameId(currentGameParticipantIdInPath, TEST_GAME_ID)).thenReturn(Optional.of(participantNumber));
 
         BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> mancalaGameServiceImpl.makeMove(TEST_GAME_ID, currentGameParticipantIdInPath, anyInt())); //TODO run test to check any()_
+                () -> mancalaGameServiceImpl.makeMove(TEST_GAME_ID, currentGameParticipantIdInPath, anyInt()));
         if (secondTurn == 1) {
             assertThat(exception.getMessage(), is("Game participant " + mancalaGame.getLastParticipantIdMove() + " has a second move turn!" +
                     " Please provide his id in request body to make a move"));
@@ -199,7 +199,7 @@ public class MancalaGameServiceImplTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"1,10,1,participantOne", "2,3,0,participantTwo"})
+    @CsvSource({"1,10,1,participantIdOne", "2,3,0,participantIdTwo"})
     void shouldThrowBadRequestExceptionWhenProvidedPitIndexIsNotInRangeForProvidedParticipant(int participantNumber,
                                                                                               int incorrectPitIndex,
                                                                                               int secondTurn,

@@ -22,10 +22,11 @@ public class GameEndServiceImpl implements GameEndService {
     private final TableCurrentStateRepository tableCurrentStateRepository;
     private final MancalaBoardSetupUtils mancalaBoardSetupUtils;
     private final TableCurrentStatePersistenceService tableCurrentStatePersistenceService;
+
     @Override
     public MancalaBoardSetup defineGameWinner(MancalaGame mancalaGame, String gameCurrentParticipantId,
-                                              boolean isCurrentParticipantFirst, TableCurrentState tableCurrentStateForLastStone,
-                                              int pitIndex) {
+                                              boolean isCurrentParticipantFirst, int pitIndexFrom,
+                                              int pitIndexTo) {
         String gameId = mancalaGame.getId();
 
         int currentGameParticipantStonesCountInBigPit = tableCurrentStateRepository.findStonesCountInPitByGameIdAndParticipantId(gameId, gameCurrentParticipantId, 1);
@@ -66,7 +67,7 @@ public class GameEndServiceImpl implements GameEndService {
         } else {
             mancalaGame.setGameStatus(GameStatesEnum.DRAW);
         }
-        return mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, gameCurrentParticipantId, pitIndex,
-                tableCurrentStateForLastStone.getPit().getPitIndex(), "0"); //end of the game
+        return mancalaBoardSetupUtils.getGameBoardSetupResponseBody(mancalaGame, gameCurrentParticipantId, pitIndexFrom,
+                pitIndexTo, "0"); //end of the game
     }
 }

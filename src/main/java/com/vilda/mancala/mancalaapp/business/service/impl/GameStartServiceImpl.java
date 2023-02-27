@@ -95,7 +95,6 @@ public class GameStartServiceImpl implements GameStartService {
             mancalaGame.getTableCurrentStatesList().add(tableCurrentState);
 
             pitJpaRepository.save(pit);
-            // pit.getTableCurrentStates().add(tableCurrentState);
             tableCurrentStateRepository.save(tableCurrentState);
         }
     }
