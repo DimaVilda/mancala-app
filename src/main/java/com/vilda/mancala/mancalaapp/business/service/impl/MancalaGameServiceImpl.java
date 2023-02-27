@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.vilda.mancala.mancalaapp.util.constants.MancalaGameConstants.PLAYER_ONE_BIG_STONE_INDEX;
+import static com.vilda.mancala.mancalaapp.util.constants.MancalaGameConstants.PLAYER_TWO_BIG_STONE_INDEX;
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +60,7 @@ public class MancalaGameServiceImpl implements MancalaGameService {
                 }
                 checkProvidedPitIndexRangeForFirstPlayer(pitIndex);
 
-                return gameMoveService.makeMove(mancalaGame, gameId, pitIndex, currentGameParticipantId, true);
+                return gameMoveService.makeMove(mancalaGame, pitIndex, currentGameParticipantId, true);
             case IN_PROGRESS:
                 boolean isCurrentParticipantFirst = isProvidedGameParticipantFirst(currentGameParticipantId, gameId);
                 //check if its really turn of provided in request body game participant
@@ -68,7 +69,7 @@ public class MancalaGameServiceImpl implements MancalaGameService {
                 //check if player chosed correct pit range
                 checkPitIndexRangeForCurrentParticipant(pitIndex, isCurrentParticipantFirst);
 
-                return gameMoveService.makeMove(mancalaGame, gameId, pitIndex, currentGameParticipantId, isCurrentParticipantFirst);
+                return gameMoveService.makeMove(mancalaGame, pitIndex, currentGameParticipantId, isCurrentParticipantFirst);
         }
         return null;
     }
@@ -135,7 +136,7 @@ public class MancalaGameServiceImpl implements MancalaGameService {
     }
 
     private void checkIfInputPitIsBigPit(int pitIndex) {
-        if (pitIndex == 6 || pitIndex == 13) {
+        if (pitIndex == PLAYER_ONE_BIG_STONE_INDEX || pitIndex == PLAYER_TWO_BIG_STONE_INDEX) {
             log.error("");
 
             throw new BadRequestException("You can't make a move from a big pit, pls chose correct pit, " +

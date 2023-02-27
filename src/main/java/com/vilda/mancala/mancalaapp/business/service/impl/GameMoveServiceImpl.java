@@ -35,9 +35,10 @@ public class GameMoveServiceImpl implements GameMoveService {
     private final TableCurrentStatePersistenceService tableCurrentStatePersistenceService;
 
     @Override
-    public MancalaBoardSetup makeMove(MancalaGame mancalaGame, String gameId, Integer pitIndex, String gameCurrentParticipantId,
+    public MancalaBoardSetup makeMove(MancalaGame mancalaGame, Integer pitIndex, String gameCurrentParticipantId,
                                       boolean isCurrentParticipantFirst) {
         log.debug("");
+        String gameId = mancalaGame.getId();
 
         TableCurrentState tableCurrentStateByProvidedPit =
                 tableCurrentStatePersistenceService.findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, pitIndex);

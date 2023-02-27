@@ -5,6 +5,6 @@ import com.vilda.mancala.mancalaapp.domain.MancalaGame;
 
 public interface GameMoveService {
 
-    MancalaBoardSetup makeMove(MancalaGame mancalaGame, String gameId, Integer pitIndex,
+    MancalaBoardSetup makeMove(MancalaGame mancalaGame, Integer pitIndex,
                                String currentGameParticipantId, boolean isCurrentParticipantFirst);
 }
