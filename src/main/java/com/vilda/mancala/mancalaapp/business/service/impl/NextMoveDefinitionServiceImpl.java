@@ -34,7 +34,7 @@ public class NextMoveDefinitionServiceImpl implements NextMoveDefinitionService 
             TableCurrentState tableCurrentStateOfTheOppositePit =
                     tableCurrentStatePersistenceService.findTableCurrentStateByMancalaGameIdAndPitIndex(gameId, oppositePitIndex);
 
-            int allStonesInOppositePitPlusOne = tableCurrentStateOfTheOppositePit.getStonesCountInPit(); //grab all stones from opposite pit already updated by + 1 above
+            int allStonesInOppositePitPlusOne = tableCurrentStateOfTheOppositePit.getStonesCountInPit() + 1; //grab all stones from opposite pit already updated by + 1 above
             if (tableCurrentStateOfTheOppositePit.getStonesCountInPit() != 0) { //check if there is stones in opposite pit cause if there is no stones we will not waste performance to update it
                 tableCurrentStatePersistenceService.saveTableCurrentStateStonesCount(tableCurrentStateOfTheOppositePit, 0);
             }

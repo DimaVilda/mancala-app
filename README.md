@@ -1,4 +1,4 @@
-# mancala-app by Vilda
+# mancala-app by Dima Vilda
 
 Project was written on java 8, contract was defined in src/main/java/com/vilda/mancala/mancalaapp/openapi/mancala-client.yaml 
 using openapi tool, to see contract UI, just compile the project and go to tagret/contractUI/index.html and run this page in your browser.
