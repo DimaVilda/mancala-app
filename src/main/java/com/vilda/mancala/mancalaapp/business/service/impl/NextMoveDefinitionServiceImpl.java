@@ -16,7 +16,6 @@ public class NextMoveDefinitionServiceImpl implements NextMoveDefinitionService 
 
     private final TableCurrentStatePersistenceService tableCurrentStatePersistenceService;
 
-    // TODO test return value!!
     @Override
     public boolean isCurrentGameParticipantNextMove(TableCurrentState tableCurrentStateForLastStone,
                                                     MancalaGame mancalaGame, String gameId,
