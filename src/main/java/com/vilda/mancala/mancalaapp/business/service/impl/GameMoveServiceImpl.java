@@ -77,22 +77,6 @@ public class GameMoveServiceImpl implements GameMoveService {
         moveEntityUtils.createMoveEntity(gameId, gameCurrentParticipantId, 0, tableCurrentStateByProvidedPit.getPit().getId(),
                 tableCurrentStateForLastStone.getPit().getId(), currentStonesCountInPit);
 
-        //TODO test purposes so delete after!
-        //set table states to 0 in current player
-/*        if (mancalaGame.getGameStatus() == GameStatesEnum.IN_PROGRESS) {
-            if (!tableCurrentStateRepository.arePitsEmptyByGameIdAndParticipantId(gameId, gameCurrentParticipantId)) { //do it once only when pits are not empty
-                List<TableCurrentState> testTableStatesOfCurrentPlayer =
-                        tableCurrentStateRepository.testTableStatesByMancalaGameIdAndParticipantId(gameId, gameCurrentParticipantId);
-                for (TableCurrentState t : testTableStatesOfCurrentPlayer) {
-                    if (t.getPit().getIsBigPit() != 1) {
-                        t.setStonesCountInPit(0);
-                    }
-                    tableCurrentStateRepository.save(t);
-                }
-            }
-        }*/
-        //TODO test purposes so delete after!
-
         // check if all pits are empty after move above in current participant game table setup
         if (mancalaGame.getGameStatus() == GameStatesEnum.IN_PROGRESS) {
             log.debug("Mancala game status is IN_PROGRESS so let's check if pits are empty after updating game table state entities");
