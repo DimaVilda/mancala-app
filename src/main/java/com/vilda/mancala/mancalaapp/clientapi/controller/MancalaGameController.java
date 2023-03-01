@@ -36,6 +36,6 @@ public class MancalaGameController implements MancalaClientApi {
                                                        NewGameSetup newGameSetup) {
         log.debug("Trying to start a new game by request body {}", newGameSetup);
 
-        return ResponseEntity.ok(mancalaGameService.startNewGame(newGameSetup));
+        return new ResponseEntity<>(mancalaGameService.startNewGame(newGameSetup), HttpStatus.CREATED);
     }
 }

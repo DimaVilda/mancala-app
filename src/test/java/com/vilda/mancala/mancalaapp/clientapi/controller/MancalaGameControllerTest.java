@@ -49,7 +49,7 @@ public class MancalaGameControllerTest {
         mockMvc.perform(post(START_GAME_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newGameSetupRequestBody)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
